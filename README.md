@@ -6,6 +6,6 @@ The model facilitates multi-class segmentation of each image into different clas
 
 The trained models are saved in ONNX format for easy deployment.
 
-Live metric visualization (training and validation loss, dice coefficient and IoU score) are available in real-time during training for monitoring progress.
+Live metric visualization (training and validation loss, dice coefficient and IoU score) is available in real-time during training for monitoring progress.
 
 Optuna is used for hyperparameter tuning to ensure the model achieves optimal performance.
