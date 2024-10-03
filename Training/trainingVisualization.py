@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 
 def logResults(epoch, trainingLoss, validationLoss, diceScore, IoUScore):
+    # CMD outputs of key metrics to sanity-check training.
     print(f"\nEpoch {epoch + 1} results:\n"
         f"Training loss: {trainingLoss:.4f}\n"
         f"Validation loss: {validationLoss:.4f}\n"
@@ -13,7 +14,8 @@ def plotMetrics(trainingLossPlot, validationLossPlot, diceScorePlot, IoUScorePlo
     if epoch == 0:
         plt.ion()
         if not hasattr(plotMetrics, 'figure'):
-            plotMetrics.figure, (plotMetrics.axisOne, plotMetrics.axisTwo, plotMetrics.axisThree, plotMetrics.axisFour) = plt.subplots(1, 4, figsize = (24, 5))
+            plotMetrics.figure, axes = plt.subplots(2, 2, figsize = (12, 10))
+            plotMetrics.axisOne, plotMetrics.axisTwo, plotMetrics.axisThree, plotMetrics.axisFour = axes.flatten()
             titles = ["Training Loss", "Validation Loss", "Dice Coefficient", "IoU Score"]
             for axis, title in zip([plotMetrics.axisOne, plotMetrics.axisTwo, plotMetrics.axisThree, plotMetrics.axisFour], titles):
                 axis.set_xlabel("Epoch")

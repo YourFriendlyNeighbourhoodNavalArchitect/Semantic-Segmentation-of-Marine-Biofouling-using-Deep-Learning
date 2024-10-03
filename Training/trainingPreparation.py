@@ -63,6 +63,7 @@ def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, cri
         plotMetrics(trainingLossPlot, validationLossPlot, diceScorePlot, IoUScorePlot, epoch)
         logResults(epoch, trainingLoss, validationLoss, diceScore, IoUScore)
 
+        # Patience implementation.
         if validationLoss < bestValidationLoss:
             bestValidationLoss = validationLoss
             epochsWithoutImprovement = 0

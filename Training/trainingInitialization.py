@@ -43,4 +43,5 @@ def setupDevice():
     return "cuda" if torch.cuda.is_available() else "cpu"
 
 def initializeLossFunction():
+    # Cross entropy loss function works optimally for multi-class segmentation tasks.
     return NN.CrossEntropyLoss()
