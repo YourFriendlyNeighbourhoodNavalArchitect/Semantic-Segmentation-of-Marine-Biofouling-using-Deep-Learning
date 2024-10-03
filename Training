@@ -1,0 +1,77 @@
+import torch
+import torch.nn as NN
+import optuna
+# Class methods are saved in seperate file to increase readability and modularity.
+from trainingPreperation import getDataloaders, getOptimizer, initializeModel, trainOneEpoch, validateOneEpoch, logResults, plotMetrics, evaluatePerformance, saveONNX, saveBestHyperparameters
+
+class Training:
+    def __init__(self):
+        self.bestOverallScore = float('inf')
+        self.modelSavePath = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\Trained model"
+        self.lossWeight = 0.5
+        self.diceWeight = 0.25
+        self.IoUWeight = 0.25
+
+    def __call__(self, trial):
+        # Common hyperparameter ranges to explore, based on literature.
+        learningRate = trial.suggest_float('learningRate', 1e-5, 1e-2)
+        batchSize = trial.suggest_categorical('batchSize', [8, 16, 32])
+        epochs = trial.suggest_int('epochs', 20, 40)
+        patience = trial.suggest_int('patience', 5, 10)
+        optimizerChoices = trial.suggest_categorical('optimizer', ['Adam', 'AdamW', 'SGD'])
+        # Cross entropy loss works optimally for multi-class segmentation.
+        criterion = NN.CrossEntropyLoss()
+        augmentationFlag = True
+        visualizationFlag = False
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        model = initializeModel(inChannels = 3, numClasses = 4, device = device)
+        optimizer = getOptimizer(optimizerChoices, model.parameters(), learningRate, trial)
+        dataPath = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\Dataset"
+        trainingDataloader, validationDataloader = getDataloaders(dataPath, batchSize, augmentationFlag, visualizationFlag)
+
+        bestScore = float('inf')
+        # Variable that logs network patience.
+        epochsWithoutImprovement = 0
+        # Reset metrics for each trial.
+        trainingLossPlot = []
+        validationLossPlot = []
+        diceScorePlot = []
+        IoUScorePlot = []
+
+        for epoch in range(epochs):
+            trainingLoss = trainOneEpoch(model, trainingDataloader, optimizer, criterion, device)
+            validationLoss, diceScore, IoUScore = validateOneEpoch(model, validationDataloader, criterion, device)
+            
+            # Live plotting of metrics.
+            # CMD outputs to log performance and sanity-check results.
+            trainingLossPlot.append(trainingLoss)
+            validationLossPlot.append(validationLoss)
+            diceScorePlot.append(diceScore)
+            IoUScorePlot.append(IoUScore)
+            plotMetrics(trainingLossPlot, validationLossPlot, diceScorePlot, IoUScorePlot, epoch)
+            logResults(epoch, trainingLoss, validationLoss, diceScore, IoUScore)
+
+            combinedScore = evaluatePerformance(validationLoss, diceScore, IoUScore)
+
+            if combinedScore < bestScore:
+                bestScore = combinedScore
+                epochsWithoutImprovement = 0
+                if bestScore < self.bestOverallScore:
+                    self.bestOverallScore = bestScore
+                    inputShape = (1, 3, 256, 256)
+                    saveONNX(model, device, inputShape, self.modelSavePath)
+                    saveBestHyperparameters(trial, self.modelSavePath)
+                    print(f"\nBest model so far saved from trial {trial.number}.\n")
+            else:
+                epochsWithoutImprovement += 1
+                if epochsWithoutImprovement >= patience:
+                    print(f"\nEarly stopping at epoch {epoch + 1}.\n")
+                    break
+
+        return bestScore
+
+objective = Training()
+study = optuna.create_study(direction = 'minimize')
+study.optimize(objective, n_trials = 30)
+print(f"Best hyperparameters: {study.best_params}")
