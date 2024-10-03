@@ -8,9 +8,6 @@ class Training:
     def __init__(self):
         self.bestOverallScore = float('inf')
         self.modelSavePath = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\Trained model"
-        self.lossWeight = 0.5
-        self.diceWeight = 0.25
-        self.IoUWeight = 0.25
 
     def __call__(self, trial):
         # Common hyperparameter ranges to explore, based on literature.
