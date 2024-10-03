@@ -5,9 +5,10 @@ from trainingPreparation import trainOneEpoch, validateOneEpoch, trainingLoop
 from trainingFinalization import saveBestHyperparameters, saveONNX
 
 def optimizeHyperparameters(trial, dataPath, device):
+    # Common hyperparameter ranges drawn from literature.
     learningRate = trial.suggest_float('learningRate', 1e-5, 1e-2)
     batchSize = trial.suggest_categorical('batchSize', [8, 16, 32])
-    epochs = trial.suggest_int('epochs', 20, 40)
+    epochs = trial.suggest_int('epochs', 20, 30)
     patience = trial.suggest_int('patience', 5, 10)
     optimizerChoices = trial.suggest_categorical('optimizer', ['Adam', 'AdamW', 'SGD'])
 
@@ -22,12 +23,15 @@ def optimizeHyperparameters(trial, dataPath, device):
     return trainingLoop(model, trainingDataloader, validationDataloader, optimizer, criterion, epochs, patience, device)
 
 def trainModel(modelSavePath, dataPath, device):
+    # Acquiring Pareto front of optimal solutions.
     study = optuna.create_study(directions = ['minimize', 'maximize', 'maximize'])
-    study.optimize(lambda trial: optimizeHyperparameters(trial, dataPath, device), n_trials = 30)
+    study.optimize(lambda trial: optimizeHyperparameters(trial, dataPath, device), n_trials = 15)
 
+    # Obtain Pareto-optimal trial with highest Dice coefficient.
     bestTrial = max(study.best_trials, key = lambda t: t.values[1])
     bestHyperparameters = {key: bestTrial.params[key] for key in ['learningRate', 'batchSize', 'epochs', 'optimizer']}
     
+    # Re-train model with optimal hyperparameters and save it locally.
     bestModel = initializeModel(inChannels = 3, numClasses = 4, device = device)
     bestOptimizer = getOptimizer(bestHyperparameters['optimizer'], bestModel.parameters(), bestHyperparameters['learningRate'], bestTrial)
     augmentationFlag = True
@@ -43,7 +47,7 @@ def trainModel(modelSavePath, dataPath, device):
     saveONNX(bestModel, device, inputShape, modelSavePath)
     saveBestHyperparameters(bestTrial, modelSavePath)
 
-modelSavePath = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS"
+modelSavePath = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained model"
 dataPath = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS"
 device = setupDevice()
 trainModel(modelSavePath, dataPath, device)
