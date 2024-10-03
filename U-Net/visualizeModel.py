@@ -10,7 +10,7 @@ from initializeWeights import initializeWeights
 from trainingInitialization import setupDevice
 
 # Dummy script to visualize the network and confirm its structure and output form.
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = setupDevice()
 # Segmentation is performed in 4 different classes that will be further explained.
 model = UNet(inChannels = 3, numClasses = 4).to(device)
 model.apply(initializeWeights)
