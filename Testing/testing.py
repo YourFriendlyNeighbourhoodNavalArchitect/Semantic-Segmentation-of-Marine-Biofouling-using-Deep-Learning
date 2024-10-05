@@ -37,11 +37,11 @@ def testModel(modelPath, imagePath, device):
     
     # Simple error handling.
     try:
-        image = Image.open(imagePath).convert("RGB")
+        image = Image.open(imagePath).convert('RGB')
         image = transform(image).unsqueeze(0).numpy()
         image = image.astype(np.float32)
         output = session.run(None, {session.get_inputs()[0].name: image})[0]
-        prediction = np.argmax(output, axis = 1).squeeze()
+        prediction = np.argmax(output[:, 1:], axis = 1).squeeze() + 1
     except Exception as e:
         print(f"Error loading image: {e}.")
         return
@@ -49,11 +49,11 @@ def testModel(modelPath, imagePath, device):
     RGBMask = classIndicesToRGB(prediction)
 
     plt.imshow(RGBMask)
-    plt.title('Predicted Mask')
+    plt.title("Predicted mask")
     plt.axis('off')
     plt.show()
 
-modelPath = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained model\bestModelOverall.onnx"
-imagePath = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\1. Slime\1.15.jpg"
+modelPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained model\bestModel.onnx'
+imagePath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\1. Slime\1.15.jpg'
 device = setupDevice()
 testModel(modelPath, imagePath, device)
