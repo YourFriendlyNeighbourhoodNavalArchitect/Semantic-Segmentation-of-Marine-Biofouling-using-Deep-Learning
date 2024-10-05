@@ -1,7 +1,7 @@
 import os
 import re
 
-def renameFiles(directory):
+def renameFiles(maskPath):
     # Simple function that renames .npy files exported from Label Studio.
     # Creates a more coherent structure for the dataset.
     phraseToValue = {
@@ -11,24 +11,25 @@ def renameFiles(directory):
         'Sea': 4
     }
 
-    for filename in os.listdir(directory):
+    for oldFilename in os.listdir(maskPath):
         # Standard Label Studio output.
-        match = re.match(r'task-(\d+)-annotation-\d+-by-\d+-tag-', filename)
+        match = re.match(r'task-(\d+)-annotation-\d+-by-\d+-tag-', oldFilename)
         if match:
             X = match.group(1)
             Y = 0
             for phrase, value in phraseToValue.items():
-                if phrase in filename:
+                if phrase in oldFilename:
                     Y = value
                     break
 
             newFilename = f'{X}.{Y}.npy'
-            oldPath = os.path.join(directory, filename)
-            newPath = os.path.join(directory, newFilename)
+            oldPath = os.path.join(maskPath, oldFilename)
+            newPath = os.path.join(maskPath, newFilename)
             os.rename(oldPath, newPath)
             # CMD output to mark success or failure.
-            print(f'Renamed {filename} to {newFilename}.')
+            print(f'Renamed {oldFilename} to {newFilename}.')
         else:
-            print(f'Skipped {filename} (does not match expected pattern).')
+            print(f'Skipped {oldFilename} (does not match expected pattern).')
 
-renameFiles(r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\Masks')
+maskPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\Masks'
+renameFiles(maskPath)
