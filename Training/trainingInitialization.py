@@ -35,8 +35,12 @@ def initializeModel(inChannels, numClasses, device):
     return model
 
 def setupDevice():
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Using device: {device}")
+    if torch.cuda.is_available():
+        device = 'cuda'
+        print(f"Using GPU.")
+    else:
+        device = 'cpu'
+        print(f"Using CPU.")
     return device
 
 def initializeLossFunction():
