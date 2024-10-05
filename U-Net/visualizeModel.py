@@ -1,9 +1,5 @@
-import sys
-
-sys.path.append(r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\Training")
-
 import torch
-import torchviz
+from torchviz import make_dot
 from torchsummary import summary
 from UNet import UNet
 from initializeWeights import initializeWeights
@@ -20,7 +16,7 @@ dummyInput = torch.randn(1, 3, 256, 256).to(device)
 output = model(dummyInput)
 print(output.shape)
 
-dot = torchviz.make_dot(output, params = dict(model.named_parameters()))
+dot = make_dot(output, params = dict(model.named_parameters()))
 path = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Visualizations\Architecture graph"
 outputPath = dot.render(path, format = "png", view = True)
 print(f"File saved to {outputPath}.")
