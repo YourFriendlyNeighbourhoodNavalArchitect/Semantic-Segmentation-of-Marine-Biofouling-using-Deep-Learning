@@ -27,9 +27,9 @@ def renameFiles(maskPath):
             newPath = os.path.join(maskPath, newFilename)
             os.rename(oldPath, newPath)
             # CMD output to mark success or failure.
-            print(f'Renamed {oldFilename} to {newFilename}.')
+            print(f"Renamed {oldFilename} to {newFilename}.")
         else:
-            print(f'Skipped {oldFilename} (does not match expected pattern).')
+            print(f"Skipped {oldFilename} (does not match expected pattern).")
 
 maskPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\Masks'
 renameFiles(maskPath)
