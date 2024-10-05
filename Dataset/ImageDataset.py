@@ -32,14 +32,14 @@ class ImageDataset(Dataset):
         # Class index equal to zero refers to "empty" pixels arising from augmentation.
         classMask = np.zeros((256, 256), dtype = np.int32)
 
-        for classIndex in range(numClasses):
+        for classIndex in range(1, numClasses):
             # Utilizing the standardized names created by renameFiles.py.
-            classMaskPath = os.path.join(self.maskPath, f'{maskBaseName}.{classIndex + 1}.npy')
+            classMaskPath = os.path.join(self.maskPath, f'{maskBaseName}.{classIndex}.npy')
             
             if os.path.exists(classMaskPath):
                 classMaskData = np.load(classMaskPath)
                 classMaskData = cv2.resize(classMaskData, (256, 256), interpolation = cv2.INTER_NEAREST)
-                classMask[classMaskData != 0] = classIndex + 1
+                classMask[classMaskData != 0] = classIndex
 
         if np.sum(classMask) == 0:
             raise FileNotFoundError(f"No masks found for base name {maskBaseName}.")
