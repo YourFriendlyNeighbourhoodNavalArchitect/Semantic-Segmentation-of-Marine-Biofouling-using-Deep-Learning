@@ -68,6 +68,6 @@ class ImageDataset(Dataset):
             image = transforms.Resize((256, 256))(image)
 
         image = transforms.ToTensor()(image)
-        mask = transforms.ToTensor()(mask).long()
+        mask = torch.from_numpy(np.array(mask)).long()
 
         return image, mask
