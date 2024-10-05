@@ -1,38 +1,34 @@
-import sys
-
-sys.path.append(r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\Training")
-
 import numpy as np
-import onnxruntime as ort
 import matplotlib.pyplot as plt
+from onnxruntime import InferenceSession
 from torchvision import transforms
 from PIL import Image
 from trainingInitialization import setupDevice
 
-# Colour map for mask labelling, same as in ImageDataset.py.
-# Green for 'No fouling'.
-# Light yellow for 'Light fouling'.
-# Red for 'Heavy fouling'.
-# Blue for 'Sea'.
-classColors = {
-    0: [0, 255, 0],
-    1: [255, 255, 102],
-    2: [255, 0, 0],
-    3: [0, 0, 255]
-}
-
 def classIndicesToRGB(prediction):
     # Function that transforms array of indices into RGB mask.
+    # Colour map for mask labelling, same as in DatasetVisualizer.py.
+    # Green for 'No fouling'.
+    # Light yellow for 'Light fouling'.
+    # Red for 'Heavy fouling'.
+    # Blue for 'Sea'.
+    classColours = {
+        1: [0, 255, 0],
+        2: [255, 255, 102],
+        3: [255, 0, 0],
+        4: [0, 0, 255]
+    }
+
     height, width = prediction.shape
     RGBMask = np.zeros((height, width, 3), dtype = np.uint8)
-    for classIndex, color in classColors.items():
-        RGBMask[prediction == classIndex] = color
+    for classIndex, colour in classColours.items():
+        RGBMask[prediction == classIndex] = colour
     return RGBMask
 
 def testModel(modelPath, imagePath, device):
     # Create ONNX Runtime session.
     providers = ['CUDAExecutionProvider', 'CPUExecutionProvider'] if device == 'cuda' else ['CPUExecutionProvider']
-    session = ort.InferenceSession(modelPath, providers = providers)
+    session = InferenceSession(modelPath, providers = providers)
 
     transform = transforms.Compose([
         transforms.Resize((256, 256)),
