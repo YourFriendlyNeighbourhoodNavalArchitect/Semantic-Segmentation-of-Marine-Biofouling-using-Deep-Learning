@@ -9,7 +9,7 @@ class Metrics:
         # Selection of the most likely class per pixel.
         yPredicted = torch.argmax(yPredicted, dim = 1)
 
-        for index in range(numClasses):
+        for index in range(1, numClasses):
             yPredictedClass = (yPredicted == index).float()
             groundTruthClass = (groundTruth == index).float()
             
@@ -29,7 +29,7 @@ class Metrics:
         # Selection of the most likely class per pixel.
         yPredicted = torch.argmax(yPredicted, dim = 1)
 
-        for index in range(numClasses):
+        for index in range(1, numClasses):
             yPredictedClass = (yPredicted == index).float()
             groundTruthClass = (groundTruth == index).float()
             
