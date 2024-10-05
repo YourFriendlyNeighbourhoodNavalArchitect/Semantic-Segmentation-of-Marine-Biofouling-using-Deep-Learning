@@ -1,8 +1,3 @@
-import sys
-
-sys.path.append(r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\Dataset")
-sys.path.append(r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\U-Net")
-
 import torch
 import torch.nn as NN
 from ImageDataset import ImageDataset
@@ -11,9 +6,9 @@ from initializeWeights import initializeWeights
 from torch import optim
 from torch.utils.data import DataLoader, random_split
 
-def getDataloaders(dataPath, batchSize, augmentationFlag, visualizationFlag):
+def getDataloaders(dataPath, batchSize, augmentationFlag):
     # Helper function that implements the dataloaders.
-    trainingDataset = ImageDataset(dataPath, augmentationFlag, visualizationFlag)
+    trainingDataset = ImageDataset(dataPath, augmentationFlag)
     generator = torch.Generator().manual_seed(42)
     # Training and validation split drawn from literature.
     trainingDataset, validationDataset = random_split(trainingDataset, [0.8, 0.2], generator = generator)
@@ -40,8 +35,11 @@ def initializeModel(inChannels, numClasses, device):
     return model
 
 def setupDevice():
-    return "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using device: {device}")
+    return device
 
 def initializeLossFunction():
     # Cross entropy loss function works optimally for multi-class segmentation tasks.
-    return NN.CrossEntropyLoss()
+    # Class index equal to zero refers to "empty" pixels arising from augmentation.
+    return NN.CrossEntropyLoss(ignore_index = 0)
