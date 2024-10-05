@@ -6,7 +6,7 @@ def logResults(epoch, trainingLoss, validationLoss, diceScore, IoUScore):
         f"Training loss: {trainingLoss:.4f}\n"
         f"Validation loss: {validationLoss:.4f}\n"
         f"Dice coefficient: {diceScore:.4f}\n"
-        f"IoU: {IoUScore:.4f}\n")
+        f"IoU score: {IoUScore:.4f}\n")
 
 def plotMetrics(trainingLossPlot, validationLossPlot, diceScorePlot, IoUScorePlot, epoch):
     # Initialize the figure and axes if it's the first call.
