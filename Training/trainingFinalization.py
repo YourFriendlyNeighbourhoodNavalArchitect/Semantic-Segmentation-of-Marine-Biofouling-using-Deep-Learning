@@ -1,6 +1,6 @@
 import os
-import json
 import torch
+from json import dump
 
 def saveONNX(model, device, inputShape, savePath):
         # ONNX offers framework interoperability and shared optimization [https://en.wikipedia.org/wiki/Open_Neural_Network_Exchange].
@@ -17,5 +17,5 @@ def saveBestHyperparameters(trial, savePath):
         # Fetch optimal hyperparameters in .json format for future reference.
         path = os.path.join(savePath, 'bestHyperparameters.json')
         with open(path, 'w') as f:
-            json.dump(trial.params, f, indent = 4)
+            dump(trial.params, f, indent = 4)
         print(f"Hyperparameters for best model saved at {path}.")
