@@ -1,5 +1,5 @@
 import os
-import re
+from re import match
 
 def renameFiles(maskPath):
     # Simple function that renames .npy files exported from Label Studio.
@@ -13,9 +13,9 @@ def renameFiles(maskPath):
 
     for oldFilename in os.listdir(maskPath):
         # Standard Label Studio output.
-        match = re.match(r'task-(\d+)-annotation-\d+-by-\d+-tag-', oldFilename)
-        if match:
-            X = match.group(1)
+        search = match(r'task-(\d+)-annotation-\d+-by-\d+-tag-', oldFilename)
+        if search:
+            X = search.group(1)
             Y = 0
             for phrase, value in phraseToValue.items():
                 if phrase in oldFilename:
