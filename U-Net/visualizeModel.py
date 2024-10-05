@@ -7,7 +7,7 @@ from trainingInitialization import setupDevice
 
 # Dummy script to visualize the network and confirm its structure and output form.
 device = setupDevice()
-# Segmentation is performed in 4 different classes that will be further explained.
+# Segmentation is performed in 5 different classes that will be further explained.
 model = UNet(inChannels = 3, numClasses = 5).to(device)
 model.apply(initializeWeights)
 summary(model, input_size = (3, 256, 256))
