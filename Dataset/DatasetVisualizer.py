@@ -65,17 +65,17 @@ class DatasetVisualizer:
         
         self.axes[0].imshow(image.permute(1, 2, 0).numpy())
         self.axes[0].set_title("Image")
-        self.axes[0].axis("off")
+        self.axes[0].axis('off')
 
         RGBMask = self.classIndicesToRGB(mask)
         self.axes[1].imshow(RGBMask)
         self.axes[1].set_title("Mask")
-        self.axes[1].axis("off")
+        self.axes[1].axis('off')
 
         self.figure.canvas.manager.set_window_title(title)
         plt.draw()
 
     
-rootPath = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS"
+rootPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS'
 augmentationFlag = True
 DatasetVisualizer(rootPath, augmentationFlag)
