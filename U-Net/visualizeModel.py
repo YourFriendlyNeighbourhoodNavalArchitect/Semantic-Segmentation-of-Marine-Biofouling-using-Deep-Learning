@@ -17,6 +17,6 @@ output = model(dummyInput)
 print(output.shape)
 
 dot = make_dot(output, params = dict(model.named_parameters()))
-path = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Visualizations\Architecture graph"
-outputPath = dot.render(path, format = "png", view = True)
+path = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Visualizations\Architecture graph'
+outputPath = dot.render(path, format = 'png', view = True)
 print(f"File saved to {outputPath}.")
