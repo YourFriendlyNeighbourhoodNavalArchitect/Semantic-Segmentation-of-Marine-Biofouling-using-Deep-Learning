@@ -61,7 +61,7 @@ class ImageDataset(Dataset):
         maskBaseName = os.path.splitext(imageName)[0]
 
         image = Image.open(os.path.join(self.imagePath, imageName)).convert('RGB')
-        mask = self.loadMask(maskBaseName, 4)
+        mask = self.loadMask(maskBaseName, 5)
 
         if self.augmentationFlag:
             image, mask = self.applyTransforms(image, mask)
