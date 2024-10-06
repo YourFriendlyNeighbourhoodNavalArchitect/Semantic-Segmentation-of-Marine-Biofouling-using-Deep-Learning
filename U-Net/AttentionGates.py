@@ -3,7 +3,7 @@ import torch.nn as NN
 class AttentionGates(NN.Module):
     # Attention gates modulate the flow of information between the encoder and the decoder.
     # Refer to [https://arxiv.org/pdf/1804.03999].
-    # This mechanism was not implemented in the original U-Net architecture, but offers performance improvements.
+    # This mechanism was not implemented in the original U-Net architecture, but may offer performance improvements.
     def __init__(self, decoderInput, encoderInput, intermediateChannels):
         super(AttentionGates, self).__init__()
         # Sub-module that processes the decoder input. Kernel size of 1 does not affect spatial dimensions.
