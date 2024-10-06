@@ -53,7 +53,7 @@ def trainModel(modelSavePath, dataPath, device, numTrials):
         print(f"{key}: {value}")
 
 modelSavePath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained model'
-dataPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS'
+dataPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TRAINING'
 device = setupDevice()
 numTrials = 30
 trainModel(modelSavePath, dataPath, device, numTrials)
