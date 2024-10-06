@@ -1,53 +1,59 @@
 import optuna
 from trainingInitialization import getDataloaders, getOptimizer, initializeModel, setupDevice, initializeLossFunction
-from trainingVisualization import logResults
-from trainingPreparation import trainOneEpoch, validateOneEpoch, trainingLoop
-from trainingFinalization import saveBestHyperparameters, saveONNX
+from trainingPreparation import trainingLoop
+from trainingFinalization import saveONNX, saveBestHyperparameters, deleteResiduals
 
-def optimizeHyperparameters(trial, dataPath, device):
-    # Common hyperparameter ranges drawn from literature.
-    learningRate = trial.suggest_float('learningRate', 1e-5, 1e-2)
-    batchSize = trial.suggest_categorical('batchSize', [8, 16, 32])
-    epochs = trial.suggest_int('epochs', 20, 30)
-    patience = trial.suggest_int('patience', 5, 10)
-    optimizerChoices = trial.suggest_categorical('optimizer', ['Adam', 'AdamW', 'SGD'])
-
-    criterion = initializeLossFunction()
-    model = initializeModel(inChannels = 3, numClasses = 4, device = device)
-    optimizer = getOptimizer(optimizerChoices, model.parameters(), learningRate, trial)
-    
-    augmentationFlag = True
-    visualizationFlag = False
-    trainingDataloader, validationDataloader = getDataloaders(dataPath, batchSize, augmentationFlag, visualizationFlag)
-
-    return trainingLoop(model, trainingDataloader, validationDataloader, optimizer, criterion, epochs, patience, device)
-
-def trainModel(modelSavePath, dataPath, device):
+def trainModel(modelSavePath, dataPath, device, numTrials):
+    # List to keep track of all the saved files for each trial.
+    savedFiles = []
     # Acquiring Pareto front of optimal solutions.
     study = optuna.create_study(directions = ['minimize', 'maximize', 'maximize'])
-    study.optimize(lambda trial: optimizeHyperparameters(trial, dataPath, device), n_trials = 15)
+
+    for _ in range(numTrials):
+        trial = study.ask()
+        # Common hyperparameter ranges drawn from literature.
+        learningRate = trial.suggest_float('learningRate', 1e-5, 1e-2)
+        batchSize = trial.suggest_categorical('batchSize', [8, 16, 32])
+        epochs = trial.suggest_int('epochs', 20, 30)
+        patience = trial.suggest_int('patience', 5, 10)
+        optimizerChoices = trial.suggest_categorical('optimizer', ['Adam', 'AdamW', 'SGD'])
+
+        criterion = initializeLossFunction()
+        model = initializeModel(inChannels = 3, numClasses = 5, device = device)
+        optimizer = getOptimizer(optimizerChoices, model.parameters(), learningRate, trial)
+
+        augmentationFlag = True
+        trainingDataloader, validationDataloader = getDataloaders(dataPath, batchSize, augmentationFlag)
+        validationLoss, diceScore, IoUScore = trainingLoop(model, trainingDataloader, validationDataloader, optimizer, criterion, epochs, patience, device)
+
+        trialNumber = trial.number
+        inputShape = (1, 3, 256, 256)
+
+        # Save the model and record the files saved.
+        ONNXPath = saveONNX(model, device, inputShape, modelSavePath, trialNumber)
+        JSONPath = saveBestHyperparameters(trial, modelSavePath)
+        savedFiles.append((ONNXPath, JSONPath))
+
+        # Report the results of the trial
+        study.tell(trial, (validationLoss, diceScore, IoUScore))
 
     # Obtain Pareto-optimal trial with highest Dice coefficient.
     bestTrial = max(study.best_trials, key = lambda t: t.values[1])
     bestHyperparameters = {key: bestTrial.params[key] for key in ['learningRate', 'batchSize', 'epochs', 'optimizer']}
     
-    # Re-train model with optimal hyperparameters and save it locally.
-    bestModel = initializeModel(inChannels = 3, numClasses = 4, device = device)
-    bestOptimizer = getOptimizer(bestHyperparameters['optimizer'], bestModel.parameters(), bestHyperparameters['learningRate'], bestTrial)
-    augmentationFlag = True
-    visualizationFlag = False
-    trainingDataloader, validationDataloader = getDataloaders(dataPath, bestHyperparameters['batchSize'], augmentationFlag, visualizationFlag)
-    
-    for epoch in range(bestHyperparameters['epochs']):
-        trainingLoss = trainOneEpoch(bestModel, trainingDataloader, bestOptimizer, initializeLossFunction(), device)
-        validationLoss, diceScore, IoUScore = validateOneEpoch(bestModel, validationDataloader, initializeLossFunction(), device)
-        logResults(epoch, trainingLoss, validationLoss, diceScore, IoUScore)
-    
-    inputShape = (1, 3, 256, 256)
-    saveONNX(bestModel, device, inputShape, modelSavePath)
-    saveBestHyperparameters(bestTrial, modelSavePath)
+    # Clean up non-optimal saved files
+    deleteResiduals(savedFiles, bestTrial.number, modelSavePath)
 
-modelSavePath = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained model"
-dataPath = r"C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS"
+    print(f"Best trial number: {bestTrial.number}")
+    print(f"Best validation loss: {bestTrial.values[0]:.4f}")
+    print(f"Best Dice coefficient: {bestTrial.values[1]:.4f}")
+    print(f"Best IoU score: {bestTrial.values[2]:.4f}")
+    print("Best hyperparameters found:")
+    for key, value in bestHyperparameters.items():
+        print(f"{key}: {value}")
+
+modelSavePath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained model'
+dataPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS'
 device = setupDevice()
-trainModel(modelSavePath, dataPath, device)
+numTrials = 30
+trainModel(modelSavePath, dataPath, device, numTrials)
