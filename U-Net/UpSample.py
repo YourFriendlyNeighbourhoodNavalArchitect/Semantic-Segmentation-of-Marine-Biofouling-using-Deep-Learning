@@ -1,5 +1,5 @@
-import torch
 import torch.nn as NN
+from torch import cat
 from BlueArrow import BlueArrow
 from AttentionGates import AttentionGates
 
@@ -17,5 +17,5 @@ class UpSample(NN.Module):
     def forward(self, x1, x2):
         x1 = self.greenArrow(x1)
         x2 = self.attentionGate(x1, x2)
-        x = torch.cat([x1, x2], dim = 1)
+        x = cat([x1, x2], dim = 1)
         return self.convolution(x)
