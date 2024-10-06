@@ -36,7 +36,7 @@ def initializeModel(inChannels, numClasses, device):
 
 def setupDevice():
     if torch.cuda.is_available():
-        device = 'cuda'
+        device = 'cuda:0'
         print(f"Using GPU.")
     else:
         device = 'cpu'
