@@ -31,5 +31,5 @@ def renameFiles(maskPath):
         else:
             print(f"Skipped {oldFilename} (does not match expected pattern).")
 
-maskPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\Masks'
+maskPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TRAINING\Masks'
 renameFiles(maskPath)
