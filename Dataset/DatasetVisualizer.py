@@ -74,8 +74,7 @@ class DatasetVisualizer:
 
         self.figure.canvas.manager.set_window_title(title)
         plt.draw()
-
-    
-rootPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS'
+        
+rootPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TRAINING'
 augmentationFlag = True
 DatasetVisualizer(rootPath, augmentationFlag)
