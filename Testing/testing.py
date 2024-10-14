@@ -58,6 +58,10 @@ def testModel(modelPath, testPath, device):
     plt.show()
 
 modelPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained model\bestModel.onnx'
-testPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TESTING\Images\15.jpg'
-device = setupDevice()
-testModel(modelPath, testPath, device)
+testFolder = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TESTING\Images'
+
+for fileName in os.listdir(testFolder):
+    testPath = os.path.join(testFolder, fileName)
+    if os.path.isfile(testPath) and fileName.endswith('.jpg'):
+        device = setupDevice()
+        testModel(modelPath, testPath, device)
