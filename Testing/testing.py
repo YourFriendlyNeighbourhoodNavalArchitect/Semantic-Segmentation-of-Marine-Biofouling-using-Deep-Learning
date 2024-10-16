@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 from onnxruntime import InferenceSession
 from PIL import Image
 from torchvision import transforms
@@ -11,12 +12,12 @@ def classIndicesToRGB(prediction):
     # Green for 'No fouling'.
     # Light yellow for 'Light fouling'.
     # Red for 'Heavy fouling'.
-    # Blue for 'Sea'.
+    # Blue for 'Background'.
     classColours = {
-        1: [0, 255, 0],
-        2: [255, 255, 102],
-        3: [255, 0, 0],
-        4: [0, 0, 255]
+        0: [0, 255, 0],
+        1: [255, 255, 102],
+        2: [255, 0, 0],
+        3: [0, 0, 255]
     }
 
     height, width = prediction.shape
@@ -37,7 +38,7 @@ def testModel(modelPath, testPath, device):
         image = Image.open(testPath).convert('RGB')
         image = transform(image).unsqueeze(0).numpy().astype(np.float32)
         output = session.run(None, {session.get_inputs()[0].name: image})[0]
-        prediction = np.argmax(output[:, 1:], axis = 1).squeeze() + 1
+        prediction = np.argmax(output, axis = 1).squeeze()
     except Exception as e:
         print(f"Error: {e}.")
         return
