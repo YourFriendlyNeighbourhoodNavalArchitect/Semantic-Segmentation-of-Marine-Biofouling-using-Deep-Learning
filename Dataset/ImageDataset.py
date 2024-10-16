@@ -7,52 +7,57 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 
 class ImageDataset(Dataset):
-    def __init__(self, rootPath, augmentationFlag):
+    def __init__(self, numClasses, rootPath, augmentationFlag):
         # Augmentation flag handles data augmentation for training.
+        self.numClasses = numClasses
         self.rootPath = rootPath
         self.imagePath = os.path.join(self.rootPath, 'Images')
         self.maskPath = os.path.join(self.rootPath, 'Masks')
+        self.augmentationFlag = augmentationFlag
 
-        self.images = sorted([f for f in os.listdir(self.imagePath) if f.endswith(('.png', '.jpg'))])
+        # Initialize images list with only those having corresponding masks.
+        self.images = []
+        for imageFile in sorted(os.listdir(self.imagePath)):
+            if imageFile.endswith(('.png', '.jpg')):
+                maskBaseName = os.path.splitext(imageFile)[0]
+                # Check if any mask files exist for this image.
+                if any(os.path.exists(os.path.join(self.maskPath, f'{maskBaseName}.{classIndex + 1}.npy')) for classIndex in range(numClasses)):
+                    self.images.append(imageFile)
 
         self.augmentTransform = transforms.Compose([
-            # Image size cannot be further increased due to hardware bottleneck.
             transforms.Resize((256, 256)),
+            # Image size cannot be further increased due to hardware bottleneck.
             transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
-            transforms.RandomRotation(30)])
-        
-        self.augmentationFlag = augmentationFlag
+            transforms.RandomVerticalFlip()])
 
     def __len__(self):
         return len(self.images)
 
     def loadMask(self, maskBaseName, numClasses):
         # Long tensor for training.
-        # Class index equal to zero refers to "empty" pixels arising from augmentation.
         classMask = np.zeros((256, 256), dtype = np.int32)
 
-        for classIndex in range(1, numClasses):
+        for classIndex in range(numClasses):
             # Utilizing the standardized names created by renameFiles.py.
-            classMaskPath = os.path.join(self.maskPath, f'{maskBaseName}.{classIndex}.npy')
+            classMaskPath = os.path.join(self.maskPath, f'{maskBaseName}.{classIndex + 1}.npy')
             
             if os.path.exists(classMaskPath):
                 classMaskData = np.load(classMaskPath)
                 classMaskData = cv2.resize(classMaskData, (256, 256), interpolation = cv2.INTER_NEAREST)
                 classMask[classMaskData != 0] = classIndex
 
-        if np.sum(classMask) == 0:
-            raise FileNotFoundError(f"No masks found for base name {maskBaseName}.")
-
         return Image.fromarray(classMask)
         
     def applyTransforms(self, image, mask):
         # Augmentation shall be applied to the image and its mask in the same manner.
         seed = np.random.randint(0, 2**31)
+        randomAngle = int(np.random.choice([0, 90, 180, 270]))
         torch.manual_seed(seed)
         image = self.augmentTransform(image)
+        image = transforms.functional.rotate(image, randomAngle)
         torch.manual_seed(seed)
         mask = self.augmentTransform(mask)
+        mask = transforms.functional.rotate(mask, randomAngle)
         return image, mask
 
     def __getitem__(self, index):
@@ -61,7 +66,7 @@ class ImageDataset(Dataset):
         maskBaseName = os.path.splitext(imageName)[0]
 
         image = Image.open(os.path.join(self.imagePath, imageName)).convert('RGB')
-        mask = self.loadMask(maskBaseName, 5)
+        mask = self.loadMask(maskBaseName, self.numClasses)
 
         if self.augmentationFlag:
             image, mask = self.applyTransforms(image, mask)
