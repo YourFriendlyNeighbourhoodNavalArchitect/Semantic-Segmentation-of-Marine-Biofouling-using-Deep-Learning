@@ -3,7 +3,7 @@ from trainingInitialization import getDataloaders, getOptimizer, initializeModel
 from trainingPreparation import trainingLoop
 from trainingFinalization import saveONNX, saveBestHyperparameters, deleteResiduals
 
-def trainModel(modelSavePath, dataPath, device, numTrials):
+def trainModel(modelSavePath, dataPath, device, numClasses, numTrials):
     # List to keep track of all the saved files for each trial.
     savedFiles = []
     # Acquiring Pareto front of optimal solutions.
@@ -19,11 +19,11 @@ def trainModel(modelSavePath, dataPath, device, numTrials):
         optimizerChoices = trial.suggest_categorical('optimizer', ['Adam', 'AdamW', 'SGD'])
 
         criterion = initializeLossFunction()
-        model = initializeModel(inChannels = 3, numClasses = 4, device = device)
+        model = initializeModel(inChannels = 3, numClasses = numClasses, device = device)
         optimizer = getOptimizer(optimizerChoices, model.parameters(), learningRate, trial)
 
         augmentationFlag = True
-        trainingDataloader, validationDataloader = getDataloaders(dataPath, batchSize, augmentationFlag)
+        trainingDataloader, validationDataloader = getDataloaders(dataPath, numClasses, batchSize, augmentationFlag)
         validationLoss, diceScore, IoUScore = trainingLoop(model, trainingDataloader, validationDataloader, optimizer, criterion, epochs, patience, device)
 
         trialNumber = trial.number
@@ -55,5 +55,6 @@ def trainModel(modelSavePath, dataPath, device, numTrials):
 modelSavePath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained model'
 dataPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TRAINING'
 device = setupDevice()
-numTrials = 30
-trainModel(modelSavePath, dataPath, device, numTrials)
+numClasses = 4
+numTrials = 50
+trainModel(modelSavePath, dataPath, device, numClasses, numTrials)
