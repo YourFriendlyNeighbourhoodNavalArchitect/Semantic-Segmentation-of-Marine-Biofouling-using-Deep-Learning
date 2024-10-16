@@ -45,5 +45,4 @@ def setupDevice():
 
 def initializeLossFunction():
     # Cross entropy loss function works optimally for multi-class segmentation tasks.
-    # Class index equal to zero refers to "empty" pixels arising from augmentation.
-    return NN.CrossEntropyLoss(ignore_index = 0)
+    return NN.CrossEntropyLoss()
