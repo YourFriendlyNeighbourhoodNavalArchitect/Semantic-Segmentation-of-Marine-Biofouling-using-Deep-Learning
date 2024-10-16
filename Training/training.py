@@ -12,9 +12,9 @@ def trainModel(modelSavePath, dataPath, device, numTrials):
     for _ in range(numTrials):
         trial = study.ask()
         # Common hyperparameter ranges drawn from literature.
-        learningRate = trial.suggest_float('learningRate', 1e-5, 1e-2)
+        learningRate = trial.suggest_float('learningRate', 1e-4, 1e-2)
         batchSize = trial.suggest_categorical('batchSize', [8, 16, 32])
-        epochs = trial.suggest_int('epochs', 20, 30)
+        epochs = trial.suggest_int('epochs', 30, 50)
         patience = trial.suggest_int('patience', 5, 10)
         optimizerChoices = trial.suggest_categorical('optimizer', ['Adam', 'AdamW', 'SGD'])
 
