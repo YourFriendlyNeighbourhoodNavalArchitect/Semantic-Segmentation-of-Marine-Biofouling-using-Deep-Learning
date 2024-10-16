@@ -25,7 +25,7 @@ def getOptimizer(optimizerChoices, parameters, learningRate, trial):
         weightDecay = trial.suggest_float('weight_decay', 1e-5, 1e-3)
         return optim.AdamW(parameters, lr = learningRate, weight_decay = weightDecay)
     elif optimizerChoices == 'SGD':
-        momentum = trial.suggest_float('momentum', 0.0, 1.0)
+        momentum = trial.suggest_float('momentum', 0.6, 0.9)
         return optim.SGD(parameters, lr = learningRate, momentum = momentum)
 
 def initializeModel(inChannels, numClasses, device):
