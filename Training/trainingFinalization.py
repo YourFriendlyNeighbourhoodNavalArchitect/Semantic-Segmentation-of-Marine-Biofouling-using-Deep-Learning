@@ -14,12 +14,20 @@ def saveONNX(model, device, inputShape, savePath, trialNumber):
     print(f"Model for trial {trialNumber} saved in ONNX format at {path}.")
     return path
 
-def saveBestHyperparameters(trial, savePath):
-    # Fetch optimal hyperparameters in .json format for future reference.
-    path = os.path.join(savePath, f'hyperparametersTrial{trial.number}.json')
+def saveResults(trial, savePath):
+    # Fetch performance metrics and hyperparameter values in .json format for future reference.
+    results = {
+        'trialNumber': trial.number,
+        'validationLoss': trial.values[0],
+        'diceCoefficient': trial.values[1],
+        'IoUScore': trial.values[2],
+        'hyperparameters': trial.params
+    }
+
+    path = os.path.join(savePath, f'resultsTrial{results["trialNumber"]}.json')
     with open(path, 'w') as f:
-        dump(trial.params, f, indent = 4)
-    print(f"Hyperparameters for trial {trial.number} saved at {path}.")
+        dump(results, f, indent = 4)
+    print(f"Results for trial {results['trialNumber']} saved at {path}.")
     return path
 
 def deleteResiduals(savedFiles, bestTrialNumber, modelSavePath):
