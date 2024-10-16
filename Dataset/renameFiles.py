@@ -8,7 +8,7 @@ def renameFiles(maskPath):
         'No fouling': 1,
         'Light fouling': 2,
         'Heavy fouling': 3,
-        'Sea': 4
+        'Background': 4
     }
 
     for oldFilename in os.listdir(maskPath):
