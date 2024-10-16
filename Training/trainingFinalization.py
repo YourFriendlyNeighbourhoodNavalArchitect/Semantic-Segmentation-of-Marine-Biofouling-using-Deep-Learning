@@ -14,31 +14,31 @@ def saveONNX(model, device, inputShape, savePath, trialNumber):
     print(f"Model for trial {trialNumber} saved in ONNX format at {path}.")
     return path
 
-def saveResults(trial, savePath):
+def saveResults(trial, validationLoss, diceScore, IoUScore, savePath):
     # Fetch performance metrics and hyperparameter values in .json format for future reference.
     results = {
         'trialNumber': trial.number,
-        'validationLoss': trial.values[0],
-        'diceCoefficient': trial.values[1],
-        'IoUScore': trial.values[2],
+        'validationLoss': validationLoss,
+        'diceScore': diceScore,
+        'IoUScore': IoUScore,
         'hyperparameters': trial.params
     }
 
-    path = os.path.join(savePath, f'resultsTrial{results["trialNumber"]}.json')
+    path = os.path.join(savePath, f'resultsTrial{trial.number}.json')
     with open(path, 'w') as f:
         dump(results, f, indent = 4)
-    print(f"Results for trial {results['trialNumber']} saved at {path}.")
+    print(f"Results for trial {trial.number} saved at {path}.")
     return path
 
 def deleteResiduals(savedFiles, bestTrialNumber, modelSavePath):
     bestModelFile = os.path.join(modelSavePath, f'modelTrial{bestTrialNumber}.onnx')
-    bestHyperparametersFile = os.path.join(modelSavePath, f'hyperparametersTrial{bestTrialNumber}.json')
+    bestResultsFile = os.path.join(modelSavePath, f'resultsTrial{bestTrialNumber}.json')
 
     for ONNXFile, JSONFile in savedFiles:
         if ONNXFile != bestModelFile:
             os.remove(ONNXFile)
-        if JSONFile != bestHyperparametersFile:
+        if JSONFile != bestResultsFile:
             os.remove(JSONFile)
 
     os.rename(bestModelFile, os.path.join(modelSavePath, 'bestModel.onnx'))
-    os.rename(bestHyperparametersFile, os.path.join(modelSavePath, 'bestHyperparameters.json'))
+    os.rename(bestResultsFile, os.path.join(modelSavePath, 'bestResults.json'))
