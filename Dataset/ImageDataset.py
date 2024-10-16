@@ -24,12 +24,6 @@ class ImageDataset(Dataset):
                 if any(os.path.exists(os.path.join(self.maskPath, f'{maskBaseName}.{classIndex + 1}.npy')) for classIndex in range(numClasses)):
                     self.images.append(imageFile)
 
-        self.augmentTransform = transforms.Compose([
-            transforms.Resize((256, 256)),
-            # Image size cannot be further increased due to hardware bottleneck.
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip()])
-
     def __len__(self):
         return len(self.images)
 
@@ -47,17 +41,25 @@ class ImageDataset(Dataset):
                 classMask[classMaskData != 0] = classIndex
 
         return Image.fromarray(classMask)
-        
+    
+    def defineTransforms(self, image, angle):
+        # Artificially enrich the dataset.
+        augmentTransform = transforms.Compose([
+                           transforms.Resize((256, 256)),
+                           # Image size cannot be further increased due to hardware bottleneck.
+                           transforms.RandomHorizontalFlip(),
+                           transforms.RandomVerticalFlip(),
+                           transforms.Lambda(lambda x: transforms.functional.rotate(x, angle))])
+        return augmentTransform(image)
+
     def applyTransforms(self, image, mask):
         # Augmentation shall be applied to the image and its mask in the same manner.
         seed = np.random.randint(0, 2**31)
         randomAngle = int(np.random.choice([0, 90, 180, 270]))
         torch.manual_seed(seed)
-        image = self.augmentTransform(image)
-        image = transforms.functional.rotate(image, randomAngle)
+        image = self.defineTransforms(image, randomAngle)
         torch.manual_seed(seed)
-        mask = self.augmentTransform(mask)
-        mask = transforms.functional.rotate(mask, randomAngle)
+        mask = self.defineTransforms(mask, randomAngle)
         return image, mask
 
     def __getitem__(self, index):
