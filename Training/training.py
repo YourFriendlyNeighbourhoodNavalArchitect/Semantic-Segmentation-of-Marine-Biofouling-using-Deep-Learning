@@ -15,7 +15,7 @@ def trainModel(modelSavePath, dataPath, device, numClasses, numTrials):
         learningRate = trial.suggest_float('learningRate', 1e-4, 1e-2)
         batchSize = trial.suggest_categorical('batchSize', [8, 16, 32])
         epochs = trial.suggest_int('epochs', 15, 30)
-        patience = trial.suggest_int('patience', 3, 5)
+        patience = trial.suggest_int('patience', 5, 10)
         optimizerChoices = trial.suggest_categorical('optimizer', ['Adam', 'AdamW', 'SGD'])
 
         criterion = initializeLossFunction()
@@ -30,10 +30,10 @@ def trainModel(modelSavePath, dataPath, device, numClasses, numTrials):
         inputShape = (1, 3, 256, 256)
 
         # Report the results of the trial and save valuable results.
-        study.tell(trial, (validationLoss, diceScore, IoUScore))
         ONNXPath = saveONNX(model, device, inputShape, modelSavePath, trialNumber)
-        JSONPath = saveResults(trial, modelSavePath)
+        JSONPath = saveResults(trial, validationLoss, diceScore, IoUScore, modelSavePath)
         savedFiles.append((ONNXPath, JSONPath))
+        study.tell(trial, (validationLoss, diceScore, IoUScore))
 
     # Obtain Pareto-optimal trial with highest Dice coefficient.
     bestTrial = max(study.best_trials, key = lambda t: t.values[1])
