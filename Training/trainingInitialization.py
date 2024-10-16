@@ -6,9 +6,9 @@ from initializeWeights import initializeWeights
 from torch import optim
 from torch.utils.data import DataLoader, random_split
 
-def getDataloaders(dataPath, batchSize, augmentationFlag):
+def getDataloaders(dataPath, numClasses, batchSize, augmentationFlag):
     # Helper function that implements the dataloaders.
-    trainingDataset = ImageDataset(dataPath, augmentationFlag)
+    trainingDataset = ImageDataset(numClasses, dataPath, augmentationFlag)
     generator = torch.Generator().manual_seed(42)
     # Training and validation split drawn from literature.
     trainingDataset, validationDataset = random_split(trainingDataset, [0.8, 0.2], generator = generator)
