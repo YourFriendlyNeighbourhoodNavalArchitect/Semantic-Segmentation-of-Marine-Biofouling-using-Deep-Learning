@@ -3,8 +3,9 @@ import numpy as np
 from ImageDataset import ImageDataset
 
 class DatasetVisualizer:
-    def __init__(self, rootPath, augmentationFlag):
+    def __init__(self, numClasses, rootPath, augmentationFlag):
         # Inputs to ImageDataset.py.
+        self.numClasses = numClasses
         self.rootPath = rootPath
         self.augmentationFlag = augmentationFlag
 
@@ -19,7 +20,7 @@ class DatasetVisualizer:
 
     def loadDataset(self):
         # Instantiation of ImageDataset.
-        dataset = ImageDataset(self.rootPath, self.augmentationFlag)
+        dataset = ImageDataset(self.numClasses, self.rootPath, self.augmentationFlag)
         if len(dataset) == 0:
             raise ValueError("No data pairs located.")
         else:
@@ -31,13 +32,12 @@ class DatasetVisualizer:
         # Green for 'No fouling'.
         # Light yellow for 'Light fouling'.
         # Red for 'Heavy fouling'.
-        # Blue for 'Sea'.
-        # Black for irrelevant areas, arising from augmentation.
+        # Blue for 'Background'.
         classColours = {
-            1: [0, 255, 0],
-            2: [255, 255, 102],
-            3: [255, 0, 0],
-            4: [0, 0, 255]
+            0: [0, 255, 0],
+            1: [255, 255, 102],
+            2: [255, 0, 0],
+            3: [0, 0, 255]
         }
 
         # Create an empty RGB image for the colorized mask.
@@ -74,7 +74,8 @@ class DatasetVisualizer:
 
         self.figure.canvas.manager.set_window_title(title)
         plt.draw()
-        
+
+numClasses = 4
 rootPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TRAINING'
 augmentationFlag = True
-DatasetVisualizer(rootPath, augmentationFlag)
+DatasetVisualizer(numClasses, rootPath, augmentationFlag)
