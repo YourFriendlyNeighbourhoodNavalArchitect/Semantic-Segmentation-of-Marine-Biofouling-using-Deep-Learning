@@ -2,15 +2,8 @@
 {
     partial class GUI
     {
-        /// <summary>
-        ///  Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        ///  Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -22,10 +15,6 @@
 
         #region Windows Form Designer generated code
 
-        /// <summary>
-        ///  Required method for Designer support - do not modify
-        ///  the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
             SelectInputFolderButton = new Button();
@@ -36,9 +25,7 @@
             OutputFolderTextBox = new TextBox();
             ModelPathTextBox = new TextBox();
             SuspendLayout();
-            // 
-            // SelectInputFolderButton
-            // 
+
             SelectInputFolderButton.FlatAppearance.BorderColor = Color.Black;
             SelectInputFolderButton.Location = new Point(200, 75);
             SelectInputFolderButton.Name = "SelectInputFolderButton";
@@ -47,9 +34,7 @@
             SelectInputFolderButton.Text = "Select Input Folder";
             SelectInputFolderButton.UseVisualStyleBackColor = true;
             SelectInputFolderButton.Click += SelectInputFolderButton_Click;
-            // 
-            // SelectOutputFolderButton
-            // 
+
             SelectOutputFolderButton.Location = new Point(200, 195);
             SelectOutputFolderButton.Name = "SelectOutputFolderButton";
             SelectOutputFolderButton.Size = new Size(200, 40);
@@ -57,9 +42,7 @@
             SelectOutputFolderButton.Text = "Select Output Folder";
             SelectOutputFolderButton.UseVisualStyleBackColor = true;
             SelectOutputFolderButton.Click += SelectOutputFolderButton_Click;
-            // 
-            // SelectModelButton
-            // 
+
             SelectModelButton.Location = new Point(200, 315);
             SelectModelButton.Name = "SelectModelButton";
             SelectModelButton.Size = new Size(200, 40);
@@ -67,9 +50,7 @@
             SelectModelButton.Text = "Provide Model Path";
             SelectModelButton.UseVisualStyleBackColor = true;
             SelectModelButton.Click += SelectModelButton_Click;
-            // 
-            // StartPredictionButton
-            // 
+
             StartPredictionButton.BackColor = Color.FromArgb(192, 192, 255);
             StartPredictionButton.FlatAppearance.BorderColor = Color.Black;
             StartPredictionButton.FlatAppearance.BorderSize = 2;
@@ -82,30 +63,22 @@
             StartPredictionButton.Text = "Initiate Predictions";
             StartPredictionButton.UseVisualStyleBackColor = false;
             StartPredictionButton.Click += StartPredictionButton_Click;
-            // 
-            // InputFolderTextBox
-            // 
+
             InputFolderTextBox.Location = new Point(125, 30);
             InputFolderTextBox.Name = "InputFolderTextBox";
             InputFolderTextBox.Size = new Size(350, 27);
             InputFolderTextBox.TabIndex = 4;
-            // 
-            // OutputFolderTextBox
-            // 
+
             OutputFolderTextBox.Location = new Point(125, 150);
             OutputFolderTextBox.Name = "OutputFolderTextBox";
             OutputFolderTextBox.Size = new Size(350, 27);
             OutputFolderTextBox.TabIndex = 5;
-            // 
-            // ModelPathTextBox
-            // 
+
             ModelPathTextBox.Location = new Point(125, 270);
             ModelPathTextBox.Name = "ModelPathTextBox";
             ModelPathTextBox.Size = new Size(350, 27);
             ModelPathTextBox.TabIndex = 6;
-            // 
-            // GUI
-            // 
+
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(582, 553);
