@@ -3,7 +3,7 @@ from trainingInitialization import getDataloaders, getOptimizer, initializeModel
 from trainingPreparation import trainingLoop
 from trainingFinalization import saveONNX, saveResults, deleteResiduals
 
-def trainModel(modelSavePath, dataPath, device, numClasses, numTrials):
+def trainModel(modelSavePath, dataPath, modelFlag, device, numClasses, numTrials):
     # List to keep track of all the saved files for each trial.
     savedFiles = []
     # Acquiring Pareto front of optimal solutions.
@@ -14,12 +14,12 @@ def trainModel(modelSavePath, dataPath, device, numClasses, numTrials):
         # Common hyperparameter ranges drawn from literature.
         learningRate = trial.suggest_float('learningRate', 1e-4, 1e-2)
         batchSize = trial.suggest_categorical('batchSize', [8, 16, 32])
-        epochs = trial.suggest_int('epochs', 15, 30)
+        epochs = trial.suggest_int('epochs', 5, 10)
         patience = trial.suggest_int('patience', 5, 10)
         optimizerChoices = trial.suggest_categorical('optimizer', ['Adam', 'AdamW', 'SGD'])
 
         criterion = initializeLossFunction()
-        model = initializeModel(modelFlag = True, inChannels = 3, numClasses = numClasses, device = device)
+        model = initializeModel(modelFlag = modelFlag, inChannels = 3, numClasses = numClasses, device = device)
         optimizer = getOptimizer(optimizerChoices, model.parameters(), learningRate, trial)
 
         augmentationFlag = True
@@ -39,11 +39,12 @@ def trainModel(modelSavePath, dataPath, device, numClasses, numTrials):
     bestTrial = max(study.best_trials, key = lambda t: t.values[1])
     
     # Clean up non-optimal saved files
-    deleteResiduals(savedFiles, bestTrial.number, modelSavePath)
+    deleteResiduals(savedFiles, bestTrial.number, modelSavePath, modelFlag)
 
 modelSavePath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained model'
 dataPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TRAINING'
+modelFlag = False
 device = setupDevice()
 numClasses = 4
-numTrials = 50
-trainModel(modelSavePath, dataPath, device, numClasses, numTrials)
+numTrials = 5
+trainModel(modelSavePath, dataPath, modelFlag, device, numClasses, numTrials)
