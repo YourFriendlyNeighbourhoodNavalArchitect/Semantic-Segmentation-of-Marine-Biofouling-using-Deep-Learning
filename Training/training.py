@@ -43,7 +43,7 @@ def trainModel(modelSavePath, dataPath, modelFlag, device, numClasses, numTrials
 
 modelSavePath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained model'
 dataPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TRAINING'
-modelFlag = False
+modelFlag = True
 device = setupDevice()
 numClasses = 4
 numTrials = 5
