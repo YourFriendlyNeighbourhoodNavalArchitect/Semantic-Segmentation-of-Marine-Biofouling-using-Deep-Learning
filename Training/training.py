@@ -19,7 +19,7 @@ def trainModel(modelSavePath, dataPath, device, numClasses, numTrials):
         optimizerChoices = trial.suggest_categorical('optimizer', ['Adam', 'AdamW', 'SGD'])
 
         criterion = initializeLossFunction()
-        model = initializeModel(True, inChannels = 3, numClasses = numClasses, device = device)
+        model = initializeModel(modelFlag = True, inChannels = 3, numClasses = numClasses, device = device)
         optimizer = getOptimizer(optimizerChoices, model.parameters(), learningRate, trial)
 
         augmentationFlag = True
