@@ -28,9 +28,12 @@ def getOptimizer(optimizerChoices, parameters, learningRate, trial):
         momentum = trial.suggest_float('momentum', 0.6, 0.9)
         return optim.SGD(parameters, lr = learningRate, momentum = momentum)
 
-def initializeModel(inChannels, numClasses, device):
+def initializeModel(modelFlag, inChannels, numClasses, device):
     # Model shall be sent to GPU to expedite execution.
-    model = UNet(inChannels = inChannels, numClasses = numClasses).to(device)
+    if modelFlag:
+        model = UNet(inChannels = inChannels, numClasses = numClasses).to(device)
+    else:
+        model = SimpleCNN(inChannels = inChannels, numClasses = numClasses).to(device)
     model.apply(initializeWeights)
     return model
 
