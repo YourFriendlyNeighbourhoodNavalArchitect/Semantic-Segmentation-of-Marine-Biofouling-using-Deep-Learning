@@ -30,7 +30,7 @@ def saveResults(trial, validationLoss, diceScore, IoUScore, savePath):
     print(f"Results for trial {trial.number} saved at {path}.")
     return path
 
-def deleteResiduals(savedFiles, bestTrialNumber, modelSavePath):
+def deleteResiduals(savedFiles, bestTrialNumber, modelSavePath, modelFlag):
     bestModelFile = os.path.join(modelSavePath, f'modelTrial{bestTrialNumber}.onnx')
     bestResultsFile = os.path.join(modelSavePath, f'resultsTrial{bestTrialNumber}.json')
 
@@ -39,6 +39,10 @@ def deleteResiduals(savedFiles, bestTrialNumber, modelSavePath):
             os.remove(ONNXFile)
         if JSONFile != bestResultsFile:
             os.remove(JSONFile)
-
-    os.rename(bestModelFile, os.path.join(modelSavePath, 'bestModel.onnx'))
-    os.rename(bestResultsFile, os.path.join(modelSavePath, 'bestResults.json'))
+    
+    if modelFlag:
+        os.rename(bestModelFile, os.path.join(modelSavePath, 'bestModel.onnx'))
+        os.rename(bestResultsFile, os.path.join(modelSavePath, 'bestResults.json'))
+    else:
+        os.rename(bestModelFile, os.path.join(modelSavePath, 'simpleBestModel.onnx'))
+        os.rename(bestResultsFile, os.path.join(modelSavePath, 'simpleBestResults.json'))
