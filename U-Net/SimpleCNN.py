@@ -27,13 +27,13 @@ class SimpleCNN(NN.Module):
 
     def forward(self, x):
         x = F.relu(self.batchNormOne(self.convolutionOne(x)))
-        x = self.pool(x)
+        x = self.pooling(x)
         
         x = F.relu(self.batchNormTwo(self.convolutionTwo(x)))
-        x = self.pool(x)
+        x = self.pooling(x)
         
         x = F.relu(self.batchNormThree(self.convolutionThree(x)))
-        x = self.pool(x)
+        x = self.pooling(x)
         
         x = F.relu(self.batchNormFour(self.fullyConnectedOne(x)))
         x = self.fullyConnectedTwo(x)
