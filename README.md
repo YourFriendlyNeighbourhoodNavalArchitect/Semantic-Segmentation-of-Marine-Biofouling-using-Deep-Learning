@@ -3,7 +3,7 @@ This project was carried out as part of the author's MSc thesis "Segmentation of
 
 Marine biofouling is the accumulation of organisms like algae, barnacles, and other marine life on submerged surfaces. Monitoring and managing biofouling is essential for the shipping industry, offshore platforms, and aquaculture to reduce drag, fuel consumption, and the spread of invasive species. This project applies deep learning for automating the process of segmentation and classification thereof.
 
-The model facilitates multi-class segmentation of each image into different classes: no fouling, light fouling, heavy fouling, and background.
+The model facilitates multi-class segmentation of each image into 8 distinct classes.
 
 Live metric visualization (training and validation loss, dice coefficient and IoU score) is available in real-time during training for monitoring progress.
 
