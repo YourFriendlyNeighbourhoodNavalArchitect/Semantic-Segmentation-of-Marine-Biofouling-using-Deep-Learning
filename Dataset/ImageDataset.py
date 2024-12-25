@@ -1,81 +1,69 @@
-import os
 import numpy as np
-import torch
-import cv2
+from torch import from_numpy
+from os import listdir
+from os.path import join, basename
+from torch import manual_seed
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 
 class ImageDataset(Dataset):
-    def __init__(self, numClasses, rootPath, augmentationFlag):
-        # Augmentation flag handles data augmentation for training.
-        self.numClasses = numClasses
+    def __init__(self, rootPath):
         self.rootPath = rootPath
-        self.imagePath = os.path.join(self.rootPath, 'Images')
-        self.maskPath = os.path.join(self.rootPath, 'Masks')
-        self.augmentationFlag = augmentationFlag
+        self.imageFolder = join(self.rootPath, 'Images')
+        self.maskFolder = join(self.rootPath, 'Masks')
 
-        # Initialize images list with only those having corresponding masks.
-        self.images = []
-        for imageFile in sorted(os.listdir(self.imagePath)):
-            if imageFile.endswith(('.png', '.jpg')):
-                maskBaseName = os.path.splitext(imageFile)[0]
-                # Check if any mask files exist for this image.
-                if any(os.path.exists(os.path.join(self.maskPath, f'{maskBaseName}.{classIndex + 1}.npy')) for classIndex in range(numClasses)):
-                    self.images.append(imageFile)
+        # Implement lazy loading of files to reduce computational overhead.
+        self.imagePaths = sorted([join(self.imageFolder, f) for f in listdir(self.imageFolder) if f.endswith('.jpg')])
+        self.maskPaths = sorted([join(self.maskFolder, f) for f in listdir(self.maskFolder) if f.endswith('.npy')])
+        # TEMPORARY
+        # self.dataset = [(imagePath, maskPath) for imagePath, maskPath in zip(self.imagePaths, self.maskPaths)
+        #                 if basename(imagePath).replace('.jpg', '.npy') == basename(maskPath)]
+        self.dataset = []
+        maskLookup = {basename(maskPath).split('.')[0]: maskPath for maskPath in self.maskPaths}
+        for imagePath in self.imagePaths:
+            image = basename(imagePath).split('.')[0]
+            if image in maskLookup:
+                self.dataset.append((imagePath, maskLookup[image]))
 
-    def __len__(self):
-        return len(self.images)
-
-    def loadMask(self, maskBaseName, numClasses):
-        # Long tensor for training.
-        classMask = np.zeros((256, 256), dtype = np.int32)
-
-        for classIndex in range(numClasses):
-            # Utilizing the standardized names created by renameFiles.py.
-            classMaskPath = os.path.join(self.maskPath, f'{maskBaseName}.{classIndex + 1}.npy')
-            
-            if os.path.exists(classMaskPath):
-                classMaskData = np.load(classMaskPath)
-                classMaskData = cv2.resize(classMaskData, (256, 256), interpolation = cv2.INTER_NEAREST)
-                classMask[classMaskData != 0] = classIndex
-
-        return Image.fromarray(classMask)
+        # Define augmentation transformations.
+        self.augmentationTransform = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip()])
     
-    def defineTransforms(self, image, angle):
-        # Artificially enrich the dataset.
-        augmentTransform = transforms.Compose([
-                           transforms.Resize((256, 256)),
-                           # Image size cannot be further increased due to hardware bottleneck.
-                           transforms.RandomHorizontalFlip(),
-                           transforms.RandomVerticalFlip(),
-                           transforms.Lambda(lambda x: transforms.functional.rotate(x, angle))])
-        return augmentTransform(image)
+    def __len__(self):
+        return len(self.dataset)
 
-    def applyTransforms(self, image, mask):
+    def resizeObject(self, object, isMask):
+        resizeTransform = transforms.Resize((256, 256), interpolation = transforms.InterpolationMode.NEAREST 
+                                            if isMask else transforms.InterpolationMode.BILINEAR)
+        return resizeTransform(object)
+
+    def applyAugmentation(self, image, mask):
         # Augmentation shall be applied to the image and its mask in the same manner.
         seed = np.random.randint(0, 2**31)
         randomAngle = int(np.random.choice([0, 90, 180, 270]))
-        torch.manual_seed(seed)
-        image = self.defineTransforms(image, randomAngle)
-        torch.manual_seed(seed)
-        mask = self.defineTransforms(mask, randomAngle)
+
+        manual_seed(seed)
+        image = self.augmentationTransform(image)
+        manual_seed(seed)
+        mask = self.augmentationTransform(mask)
+        image = transforms.functional.rotate(image, randomAngle)
+        mask = transforms.functional.rotate(mask, randomAngle)
+
         return image, mask
 
     def __getitem__(self, index):
-        # Getter ensures masks are in the correct form, based on the flag.
-        imageName = self.images[index]
-        maskBaseName = os.path.splitext(imageName)[0]
+        # Getter ensures masks are in the correct form.
+        imagePath, maskPath = self.dataset[index]
+        image = Image.open(imagePath).convert('RGB')
+        mask = np.load(maskPath)
+        mask = from_numpy(mask).long().unsqueeze(0)
 
-        image = Image.open(os.path.join(self.imagePath, imageName)).convert('RGB')
-        mask = self.loadMask(maskBaseName, self.numClasses)
-
-        if self.augmentationFlag:
-            image, mask = self.applyTransforms(image, mask)
-        else:
-            image = transforms.Resize((256, 256))(image)
-
+        image = self.resizeObject(image, isMask = False)
+        mask = self.resizeObject(mask, isMask = True)
+        image, mask = self.applyAugmentation(image, mask)
         image = transforms.ToTensor()(image)
-        mask = torch.from_numpy(np.array(mask)).long()
+        mask = mask.squeeze(0)
 
         return image, mask

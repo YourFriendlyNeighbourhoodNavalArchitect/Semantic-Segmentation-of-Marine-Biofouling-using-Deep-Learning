@@ -1,52 +1,61 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from ImageDataset import ImageDataset
+from matplotlib.pyplot import subplots, draw, show
+from matplotlib.lines import Line2D
+from configurationFile import CLASS_DICTIONARY, ALL_PATH
 
 class DatasetVisualizer:
-    def __init__(self, numClasses, rootPath, augmentationFlag):
-        # Inputs to ImageDataset.py.
-        self.numClasses = numClasses
+    def __init__(self, rootPath):
         self.rootPath = rootPath
-        self.augmentationFlag = augmentationFlag
-
         self.dataset = self.loadDataset()
-        self.currentIndex = 0
-        self.figure, self.axes = plt.subplots(1, 2, figsize = (10, 5))
-        self.updatePlot()
 
-        # Move right or left using keyboard arrows, as per method below.
+        self.currentIndex = 0
+        self.figure, self.axes = subplots(1, 2, figsize = (10, 5))
+        self.figure.subplots_adjust(left = 0.01, right = 0.99, top = 0.95, bottom = 0.01, wspace = 0.025)
+        self.classColours = CLASS_DICTIONARY
+
+        self.updatePlot()
         self.figure.canvas.mpl_connect('key_press_event', self.onKeyPress)
-        plt.show()
+        show()
 
     def loadDataset(self):
-        # Instantiation of ImageDataset.
-        dataset = ImageDataset(self.numClasses, self.rootPath, self.augmentationFlag)
-        if len(dataset) == 0:
-            raise ValueError("No data pairs located.")
-        else:
-            print(f"Total number of samples in the dataset: {len(dataset)}")
-            return dataset
+        dataset = ImageDataset(self.rootPath)
+        print(f"Total number of samples in the dataset: {len(dataset)}")
+        return dataset
+
+    def calculateClassCoverage(self, mask):
+        # Calculate the percentage coverage of each class in the mask.
+        try:
+            height, width = mask.shape
+            totalPixels = height * width
+            unique, counts = np.unique(mask, return_counts = True)
+            classCoverage = {}
+
+            for className, properties in self.classColours.items():
+                classIndex = properties['index']
+                classPixels = counts[np.where(unique == classIndex)][0] if classIndex in unique else 0
+                classCoverage[className] = (classPixels / totalPixels) * 100
+            return classCoverage
+
+        except Exception as e:
+            print(f"Error calculating class coverage: {e}")
+            raise
 
     def classIndicesToRGB(self, mask):
-        # Create a colorized version of the mask.
-        # Green for 'No fouling'.
-        # Light yellow for 'Light fouling'.
-        # Red for 'Heavy fouling'.
-        # Blue for 'Background'.
-        classColours = {
-            0: [0, 255, 0],
-            1: [255, 255, 102],
-            2: [255, 0, 0],
-            3: [0, 0, 255]
-        }
+        # Create an RGB image for each colorized mask.
+        try:
+            height, width = mask.shape
+            RGBMask = np.zeros((height, width, 3), dtype = np.uint8)
+            for _, properties in self.classColours.items():
+                classIndex = properties['index']
+                colour = properties['colour']
+                RGBMask[mask == classIndex] = colour
+            
+            return RGBMask
 
-        # Create an empty RGB image for the colorized mask.
-        mask = mask.squeeze(0).numpy()
-        height, width = mask.shape
-        RGBMask = np.zeros((height, width, 3), dtype = np.uint8)
-        for classIndex, colour in classColours.items():
-            RGBMask[mask == classIndex] = colour
-        return RGBMask
+        except Exception as e:
+            print(f"Error converting mask to RGB: {e}")
+            raise
 
     def onKeyPress(self, event):
         if event.key == 'right':
@@ -56,26 +65,39 @@ class DatasetVisualizer:
             self.currentIndex = (self.currentIndex - 1) % len(self.dataset)
             self.updatePlot()
         else:
-            pass
+            print("Invalid key pressed. Use left or right arrow keys.")
+    
+    def generateLegend(self, coverage):
+        # Labels appear only for the classes which appear in the mask.
+        filteredCoverage = {className: classCoverage for className, classCoverage in coverage.items() if classCoverage > 0}
+
+        legendLabels = [f'{className}: {filteredCoverage[className]:.2f}%' for className in filteredCoverage]
+        handles = [Line2D([0], [0], marker = 's', color = 'w', 
+                   markerfacecolor = np.array(self.classColours[className]['colour']) / 255, 
+                   markersize = 6) for className in filteredCoverage]
+        return legendLabels, handles
 
     def updatePlot(self):
         # Utilizing Pyplot, print image and mask side by side.
         image, mask = self.dataset[self.currentIndex]
-        title = f"Sample {self.currentIndex + 1}"
-        
-        self.axes[0].imshow(image.permute(1, 2, 0).numpy())
-        self.axes[0].set_title("Image")
-        self.axes[0].axis('off')
-
+        image = image.permute(1, 2, 0).numpy()
         RGBMask = self.classIndicesToRGB(mask)
-        self.axes[1].imshow(RGBMask)
-        self.axes[1].set_title("Mask")
+        
+        self.axes[0].imshow(image, animated = True)
+        self.axes[0].set_title('Image')
+        self.axes[0].axis('off')
+        self.axes[1].imshow(RGBMask, animated = True)
+        self.axes[1].set_title('Mask')
         self.axes[1].axis('off')
+        
+        # Calculate and display class coverage.
+        coverage = self.calculateClassCoverage(mask)
+        legendLabels, handles = self.generateLegend(coverage)
+        self.axes[1].legend(handles = handles, labels = legendLabels, 
+                            loc = 'upper right', title = 'Class Coverage', 
+                            title_fontsize = 10, fontsize = 8)
 
-        self.figure.canvas.manager.set_window_title(title)
-        plt.draw()
+        self.figure.canvas.manager.set_window_title(f'Dataset Visualizer')
+        draw()
 
-numClasses = 4
-rootPath = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TRAINING'
-augmentationFlag = True
-DatasetVisualizer(numClasses, rootPath, augmentationFlag)
+DatasetVisualizer(ALL_PATH)
