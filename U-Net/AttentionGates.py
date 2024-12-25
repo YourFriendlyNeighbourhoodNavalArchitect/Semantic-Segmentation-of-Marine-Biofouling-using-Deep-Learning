@@ -5,7 +5,7 @@ class AttentionGates(NN.Module):
     # Refer to [https://arxiv.org/pdf/1804.03999].
     # This mechanism was not implemented in the original U-Net architecture, but may offer performance improvements.
     def __init__(self, decoderInput, encoderInput, intermediateChannels):
-        super(AttentionGates, self).__init__()
+        super().__init__()
         # Sub-module that processes the decoder input. Kernel size of 1 does not affect spatial dimensions.
         self.decoderModule = NN.Sequential(
             NN.Conv2d(decoderInput, intermediateChannels, kernel_size = 1, stride = 1, padding = 0, bias = True),

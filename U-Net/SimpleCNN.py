@@ -1,5 +1,5 @@
 import torch.nn as NN
-import torch.nn.functional as F
+from torch.nn.functional import relu, interpolate
 
 class SimpleCNN(NN.Module):
     # Simple architecture utilizing successive convolution blocks.
@@ -26,17 +26,17 @@ class SimpleCNN(NN.Module):
         self.pooling = NN.MaxPool2d(kernel_size = 2, stride = 2)
 
     def forward(self, x):
-        x = F.relu(self.batchNormOne(self.convolutionOne(x)))
+        x = relu(self.batchNormOne(self.convolutionOne(x)))
         x = self.pooling(x)
         
-        x = F.relu(self.batchNormTwo(self.convolutionTwo(x)))
+        x = relu(self.batchNormTwo(self.convolutionTwo(x)))
         x = self.pooling(x)
         
-        x = F.relu(self.batchNormThree(self.convolutionThree(x)))
+        x = relu(self.batchNormThree(self.convolutionThree(x)))
         x = self.pooling(x)
         
-        x = F.relu(self.batchNormFour(self.fullyConnectedOne(x)))
+        x = relu(self.batchNormFour(self.fullyConnectedOne(x)))
         x = self.fullyConnectedTwo(x)
         
-        x = F.interpolate(x, scale_factor = 8, mode = 'bilinear', align_corners = True)
+        x = interpolate(x, scale_factor = 8, mode = 'bilinear', align_corners = True)
         return x
