@@ -38,7 +38,7 @@ def validateOneEpoch(model, validationDataloader, criterion, device):
             groundTruth = imagePair[1].to(device)
             yPredicted = model(image)
             # Input tensor form: (B, C, H, W)
-            # Ground truth tensor form: (C, H, W)
+            # Ground truth tensor form: (B, H, W)
             loss = criterion(yPredicted, groundTruth)
             runningLoss += loss.item()
             # Metrics are calculated during validation.
