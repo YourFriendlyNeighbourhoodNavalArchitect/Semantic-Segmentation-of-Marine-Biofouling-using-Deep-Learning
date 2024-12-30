@@ -1,48 +1,59 @@
-import os
-import torch
+from os.path import join
+from os import rename, remove
+from torch import randn
+from torch.onnx import export
 from json import dump
 
 def saveONNX(model, device, inputShape, savePath, trialNumber):
     # ONNX offers framework interoperability and shared optimization [https://en.wikipedia.org/wiki/Open_Neural_Network_Exchange].
     # Exporting requires dummy input tensor.
-    dummyInput = torch.randn(inputShape).to(device)
-    path = os.path.join(savePath, f'modelTrial{trialNumber}.onnx')
+    dummyInput = randn(inputShape).to(device)
+    path = join(savePath, f'modelTrial{trialNumber}.onnx')
     # Constant folding improves efficiency.
-    torch.onnx.export(model, dummyInput, path, export_params = True, 
+    export(model, dummyInput, path, export_params = True, 
                       opset_version = 12, do_constant_folding = True,
                       input_names = ['Input'], output_names = ['Output'])
     print(f"Model for trial {trialNumber} saved in ONNX format at {path}.")
     return path
 
-def saveResults(trial, validationLoss, diceScore, IoUScore, savePath):
-    # Fetch performance metrics and hyperparameter values in .json format for future reference.
+def saveResults(trial, trainingLoss, validationLoss, diceScore, IoUScore, accuracy, precision, recall, savePath):
+    # Fetch performance metrics and hyperparameter values in JSON format for future reference.
     results = {
         'trialNumber': trial.number,
+        'trainingLoss': trainingLoss,
         'validationLoss': validationLoss,
         'diceScore': diceScore,
         'IoUScore': IoUScore,
+        'accuracy': accuracy,
+        'precision': precision,
+        'recall': recall,
         'hyperparameters': trial.params
     }
 
-    path = os.path.join(savePath, f'resultsTrial{trial.number}.json')
+    path = join(savePath, f'resultsTrial{trial.number}.json')
     with open(path, 'w') as f:
         dump(results, f, indent = 4)
     print(f"Results for trial {trial.number} saved at {path}.")
     return path
 
-def deleteResiduals(savedFiles, bestTrialNumber, modelSavePath, modelFlag):
-    bestModelFile = os.path.join(modelSavePath, f'modelTrial{bestTrialNumber}.onnx')
-    bestResultsFile = os.path.join(modelSavePath, f'resultsTrial{bestTrialNumber}.json')
+def deleteResiduals(savedFiles, bestTrialNumber, modelSavePath, trainingPlotSavePath, modelFlag):
+    bestModelFile = join(modelSavePath, f'modelTrial{bestTrialNumber}.onnx')
+    bestResultsFile = join(modelSavePath, f'resultsTrial{bestTrialNumber}.json')
+    bestPlotFile = join(trainingPlotSavePath, f'trainingPlot{bestTrialNumber}.png')
 
-    for ONNXFile, JSONFile in savedFiles:
+    for ONNXFile, JSONFile, PNGFile in savedFiles:
         if ONNXFile != bestModelFile:
-            os.remove(ONNXFile)
+            remove(ONNXFile)
         if JSONFile != bestResultsFile:
-            os.remove(JSONFile)
+            remove(JSONFile)
+        if PNGFile != bestPlotFile:
+            remove(PNGFile)
     
     if modelFlag:
-        os.rename(bestModelFile, os.path.join(modelSavePath, 'bestModel.onnx'))
-        os.rename(bestResultsFile, os.path.join(modelSavePath, 'bestResults.json'))
+        rename(bestModelFile, join(modelSavePath, 'bestModel.onnx'))
+        rename(bestResultsFile, join(modelSavePath, 'bestResults.json'))
+        rename(bestPlotFile, join(trainingPlotSavePath, 'bestTrainingPlot.png'))
     else:
-        os.rename(bestModelFile, os.path.join(modelSavePath, 'simpleBestModel.onnx'))
-        os.rename(bestResultsFile, os.path.join(modelSavePath, 'simpleBestResults.json'))
+        rename(bestModelFile, join(modelSavePath, 'simpleBestModel.onnx'))
+        rename(bestResultsFile, join(modelSavePath, 'simpleBestResults.json'))
+        rename(bestPlotFile, join(trainingPlotSavePath, 'simpleBestTrainingPlot.png'))
