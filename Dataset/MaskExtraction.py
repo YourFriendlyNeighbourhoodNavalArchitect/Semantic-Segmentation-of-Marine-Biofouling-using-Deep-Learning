@@ -7,7 +7,7 @@ from configurationFile import CLASS_DICTIONARY, API_KEY, ALL_PATH
 
 class MaskExtraction:
     def __init__(self, inputFile, outputDirectory):
-        # Labelbox outputs a .ndjson file with all mask information.
+        # Labelbox outputs a JSON file with all mask information.
         self.inputFile = inputFile
         self.outputDirectory = outputDirectory
         # Reusable and secure connection for all HTTP requests.
@@ -34,7 +34,7 @@ class MaskExtraction:
             return None
 
     def processImage(self, entry):
-        # Parse .ndjson file based on its structure.
+        # Parse JSON file based on its structure.
         dataRow = entry.get('data_row', {})
         image = dataRow.get('external_id')
         ID = splitext(image)[0]
@@ -71,7 +71,7 @@ class MaskExtraction:
                 continue
             ID, fullMask = result
 
-            # Save the mask locally as an .npy file.
+            # Save the mask locally as an NPY file.
             outputPath = join(self.outputDirectory, f'{ID}.npy')
             np.save(outputPath, fullMask)
             print(f"Saved mask for {ID} to {outputPath}.")
