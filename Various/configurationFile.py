@@ -11,10 +11,12 @@ CLASS_DICTIONARY = {
 }
 
 # Project configuration variables.
+SEED = 29
+RESOLUTION = (304, 304)
 NUM_CLASSES = len(CLASS_DICTIONARY)
 ALL_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\ALL'
 TRAINING_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TRAINING'
 TESTING_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TESTING\Images'
-MODEL_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained model'
+MODEL_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained models'
 VISUALISATIONS_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Visualizations'
 API_KEY = 'REMOVED_LABELBOX_API_KEY'
