@@ -11,7 +11,7 @@ def trainModel(modelSavePath, trainingPlotSavePath, dataPath, modelFlag, device,
     cudnn.benchmark = False
     # List to keep track of all the saved files for each trial.
     savedFiles = []
-    # Acquiring Pareto front of optimal solutions.
+    # Initiate hyperparameter optimization with respect to validation loss.
     study = optuna.create_study(direction = 'minimize')
 
     for _ in range(numTrials):
@@ -38,7 +38,7 @@ def trainModel(modelSavePath, trainingPlotSavePath, dataPath, modelFlag, device,
         validationLoss = validationMetrics['Loss']
         study.tell(trial, validationLoss)
 
-    # Obtain Pareto-optimal trial with highest Dice coefficient.
+    # Obtain optimal trial.
     bestTrial = study.best_trial
     
     # Clean up non-optimal saved files
