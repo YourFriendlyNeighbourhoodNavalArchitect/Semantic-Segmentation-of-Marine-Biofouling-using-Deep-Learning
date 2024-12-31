@@ -4,16 +4,16 @@ from math import log10, floor
 from os.path import join
 from configurationFile import VISUALISATIONS_PATH
 
-def logResults(epoch, trainingLoss, validationLoss, diceScore, IoUScore, accuracy, precision, recall):
+def logResults(epoch, trainingMetrics, validationMetrics):
     # CMD outputs of key metrics to sanity-check training.
-    print(f"\nEpoch {epoch + 1} results:\n"
-          f"Training loss: {trainingLoss:.4f}\n"
-          f"Validation loss: {validationLoss:.4f}\n"
-          f"Dice coefficient: {diceScore:.4f}\n"
-          f"IoU score: {IoUScore:.4f}\n"
-          f"Accuracy: {accuracy:.4f}\n"
-          f"Precision: {precision:.4f}\n"
-          f"Recall: {recall:.4f}\n")
+    print(f"\nEpoch {epoch + 1} results:")
+    print("Training Metrics:")
+    for key, value in trainingMetrics.items():
+        print(f"{key}: {value:.4f}")
+    print("Validation Metrics:")
+    for key, value in validationMetrics.items():
+        print(f"{key}: {value:.4f}")
+    print("\n")
 
 def ticksFormat(x, pos):
     # Dummy function to format y-axis ticks.
