@@ -3,7 +3,6 @@ from torch.backends import cudnn
 from trainingInitialization import getDataloaders, getOptimizer, initializeModel, setupDevice, initializeLossFunction
 from trainingPreparation import trainingLoop
 from trainingFinalization import saveONNX, saveResults, deleteResiduals
-from trainingVisualization import saveTrainingPlot
 from configurationFile import MODEL_PATH, NUM_CLASSES, TRAINING_PATH, RESOLUTION, VISUALISATIONS_PATH
 
 def trainModel(modelSavePath, trainingPlotSavePath, dataPath, modelFlag, device, numClasses, numTrials):
@@ -13,42 +12,39 @@ def trainModel(modelSavePath, trainingPlotSavePath, dataPath, modelFlag, device,
     # List to keep track of all the saved files for each trial.
     savedFiles = []
     # Acquiring Pareto front of optimal solutions.
-    study = optuna.create_study(directions = ['minimize', 'maximize', 'maximize'])
+    study = optuna.create_study(direction = 'minimize')
 
     for _ in range(numTrials):
         trial = study.ask()
         trialNumber = trial.number
         # Common hyperparameter ranges drawn from literature.
-        learningRate = trial.suggest_float('learningRate', 1e-4, 1e-2)
+        learningRate = trial.suggest_float('learningRate', 1e-4, 1e-3)
         batchSize = trial.suggest_categorical('batchSize', [8, 16])
-        epochs = trial.suggest_int('epochs', 3, 3)
-        patience = trial.suggest_int('patience', 40, 60)
-        optimizerChoices = trial.suggest_categorical('optimizer', ['Adam', 'AdamW', 'SGD'])
-        stepSize = trial.suggest_int('step_size', 10, 25)
-        gamma = trial.suggest_float('lr_decay_factor', 0.1, 0.9)
+        epochs = trial.suggest_int('epochs', 200, 400)
 
         criterion = initializeLossFunction()
         model = initializeModel(modelFlag = modelFlag, inChannels = 3, numClasses = numClasses, device = device)
-        optimizer, scheduler = getOptimizer(optimizerChoices, model.parameters(), learningRate, stepSize, gamma, trial)
+        optimizer, scheduler = getOptimizer(model.parameters(), learningRate)
 
         trainingDataloader, validationDataloader = getDataloaders(dataPath, batchSize)
-        trainingLoss, validationLoss, diceScore, IoUScore, accuracy, precision, recall, PNGPath = trainingLoop(model, trainingDataloader, validationDataloader, optimizer, scheduler, criterion, epochs, patience, device, trialNumber)
+        trainingMetrics, validationMetrics, PNGPath = trainingLoop(model, trainingDataloader, validationDataloader, optimizer, scheduler, criterion, epochs, device, trialNumber)
         
         inputShape = (1, 3, *RESOLUTION)
 
         # Report the results of the trial and save valuable results.
         ONNXPath = saveONNX(model, device, inputShape, modelSavePath, trialNumber)
-        JSONPath = saveResults(trial, trainingLoss, validationLoss, diceScore, IoUScore, accuracy, precision, recall, modelSavePath)
+        JSONPath = saveResults(trial, trainingMetrics, validationMetrics, modelSavePath)
         savedFiles.append((ONNXPath, JSONPath, PNGPath))
-        study.tell(trial, (validationLoss, diceScore, IoUScore))
+        validationLoss = validationMetrics['Loss']
+        study.tell(trial, validationLoss)
 
     # Obtain Pareto-optimal trial with highest Dice coefficient.
-    bestTrial = max(study.best_trials, key = lambda t: t.values[1])
+    bestTrial = study.best_trial
     
     # Clean up non-optimal saved files
     deleteResiduals(savedFiles, bestTrial.number, modelSavePath, trainingPlotSavePath, modelFlag)
 
 modelFlag = False
 device = setupDevice()
-numTrials = 1
+numTrials = 5
 trainModel(MODEL_PATH, VISUALISATIONS_PATH, TRAINING_PATH, modelFlag, device, NUM_CLASSES, numTrials)

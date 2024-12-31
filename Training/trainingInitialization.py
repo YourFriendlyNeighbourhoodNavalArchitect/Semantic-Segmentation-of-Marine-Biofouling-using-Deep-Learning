@@ -2,7 +2,7 @@ from torch import Generator, optim
 from torch.cuda import is_available
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader, random_split
-from torch.optim.lr_scheduler import StepLR
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from ImageDataset import ImageDataset
 from UNet import UNet
 from SimpleCNN import SimpleCNN
@@ -10,8 +10,8 @@ from initializeWeights import initializeWeights
 from configurationFile import SEED
 
 def getDataloaders(dataPath, batchSize):
-    # Helper function that implements the dataloaders.
     trainingDataset = ImageDataset(dataPath)
+    # Ensure reproducibility, using a global seed to split the data.
     generator = Generator().manual_seed(SEED)
     # Training and validation split drawn from literature.
     trainingDataset, validationDataset = random_split(trainingDataset, [0.8, 0.2], generator = generator)
@@ -21,22 +21,13 @@ def getDataloaders(dataPath, batchSize):
 
     return trainingDataloader, validationDataloader
 
-def getOptimizer(optimizerChoices, parameters, learningRate, stepSize, gamma, trial):
-    # Various optimizers to train the model on, evaluating performance along the way.
-    if optimizerChoices == 'Adam':
-        optimizer = optim.Adam(parameters, lr = learningRate)
-    elif optimizerChoices == 'AdamW':
-        weightDecay = trial.suggest_float('weight_decay', 1e-5, 1e-3)
-        optimizer = optim.AdamW(parameters, lr = learningRate, weight_decay = weightDecay)
-    elif optimizerChoices == 'SGD':
-        weightDecay = trial.suggest_float('weight_decay', 1e-5, 1e-3)
-        momentum = trial.suggest_float('momentum', 0.6, 0.9)
-        optimizer = optim.SGD(parameters, lr = learningRate, weight_decay = weightDecay, momentum = momentum)
-    else:
-        raise ValueError("Invalid optimizer choice.")
+def getOptimizer(parameters, learningRate):
+    # Weight decay requires careful tuning when implemented alongside batch normalization [https://tinyurl.com/3kzm37tz].
+    # For the purposes of this dissertation, we revert to the traditional Adam optimizer, without weight decay.
+    optimizer = optim.Adam(parameters, lr = learningRate)
 
     # Learning rate decay routine.
-    scheduler = StepLR(optimizer, step_size = stepSize, gamma = gamma)
+    scheduler = ReduceLROnPlateau(optimizer, mode = 'min', min_lr = 1e-8)
 
     return optimizer, scheduler
 
