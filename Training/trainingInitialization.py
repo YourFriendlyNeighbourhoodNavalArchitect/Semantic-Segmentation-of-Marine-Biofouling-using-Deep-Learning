@@ -42,7 +42,7 @@ def initializeModel(modelFlag, inChannels, numClasses, device):
 
 def setupDevice():
     if is_available():
-        device = 'cuda:0'
+        device = 'cuda'
         print(f"Using GPU.")
     else:
         device = 'cpu'
