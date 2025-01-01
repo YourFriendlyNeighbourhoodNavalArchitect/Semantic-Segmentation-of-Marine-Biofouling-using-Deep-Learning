@@ -1,5 +1,5 @@
 from tqdm import tqdm
-from torch import no_grad
+from torch import no_grad, Tensor
 from trainingVisualization import logResults, plotMetrics
 from Metrics import Metrics
 
@@ -82,6 +82,10 @@ def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, sch
         logResults(epoch, trainingMetrics, validationMetrics)
     
     # Plot training metrics after training ends, to decrease computational overhead.
+    validationDiceScorePlot = [value.cpu().item() for value in validationDiceScorePlot]
+    validationIoUScorePlot = [value.cpu().item() for value in validationIoUScorePlot]
     PNGPath = plotMetrics(trainingLossPlot, validationLossPlot, validationDiceScorePlot, validationIoUScorePlot, trialNumber)
 
+    trainingMetrics = {key: value.cpu().item() if isinstance(value, Tensor) else value for key, value in trainingMetrics.items()}
+    validationMetrics = {key: value.cpu().item() if isinstance(value, Tensor) else value for key, value in validationMetrics.items()}
     return trainingMetrics, validationMetrics, PNGPath
