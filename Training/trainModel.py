@@ -20,7 +20,7 @@ def trainModel(modelSavePath, trainingPlotSavePath, dataPath, modelFlag, device,
         # Common hyperparameter ranges drawn from literature.
         learningRate = trial.suggest_float('learningRate', 1e-4, 1e-3)
         batchSize = trial.suggest_categorical('batchSize', [8, 16])
-        epochs = trial.suggest_int('epochs', 200, 400)
+        epochs = trial.suggest_int('epochs', 2, 3)
 
         criterion = initializeLossFunction()
         model = initializeModel(modelFlag = modelFlag, inChannels = 3, numClasses = numClasses, device = device)
