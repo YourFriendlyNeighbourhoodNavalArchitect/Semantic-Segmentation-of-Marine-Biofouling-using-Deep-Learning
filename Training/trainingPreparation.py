@@ -1,9 +1,10 @@
 from tqdm import tqdm
 from torch import no_grad, Tensor
+from torch.amp import autocast, GradScaler
 from trainingVisualization import logResults, plotMetrics
 from Metrics import Metrics
 
-def trainOneEpoch(model, trainingDataloader, optimizer, criterion, device, metricsCalculator):
+def trainOneEpoch(model, trainingDataloader, optimizer, scaler, criterion, device, metricsCalculator):
     model.train()
     aggregatedMetrics = {
         'Loss': 0,
@@ -17,20 +18,24 @@ def trainOneEpoch(model, trainingDataloader, optimizer, criterion, device, metri
         # Send data to GPU.
         image = imagePair[0].to(device)
         groundTruth = imagePair[1].to(device)
-        prediction = model(image)
         optimizer.zero_grad()
-        # Input tensor form: (B, C, H, W)
-        # Ground truth tensor form: (B, H, W)
-        loss = criterion(prediction, groundTruth)
 
-        # Compute metrics.
-        batchMetrics = metricsCalculator.computeMetrics(prediction, groundTruth)
-        aggregatedMetrics['Loss'] += loss.item()
-        for key in batchMetrics:
-            aggregatedMetrics[key] += batchMetrics[key]
+        # Enable Automatic Mixed Precision (AMP), taking advantage of CUDA GPUs.
+        with autocast(device_type = device):
+            prediction = model(image)
+            # Input tensor form: (B, C, H, W)
+            # Ground truth tensor form: (B, H, W)
+            loss = criterion(prediction, groundTruth)
 
-        loss.backward()
-        optimizer.step()
+            # Compute metrics.
+            batchMetrics = metricsCalculator.computeMetrics(prediction, groundTruth)
+            aggregatedMetrics['Loss'] += loss.item()
+            for key in batchMetrics:
+                aggregatedMetrics[key] += batchMetrics[key]
+        
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
 
     averagedMetrics = {key: value / len(trainingDataloader) for key, value in aggregatedMetrics.items()}
 
@@ -50,13 +55,15 @@ def validateOneEpoch(model, validationDataloader, criterion, device, metricsCalc
         for imagePair in tqdm(validationDataloader, desc = "Validation"):
             image = imagePair[0].to(device)
             groundTruth = imagePair[1].to(device)
-            prediction = model(image)
-            loss = criterion(prediction, groundTruth)
 
-            batchMetrics = metricsCalculator.computeMetrics(prediction, groundTruth)
-            aggregatedMetrics['Loss'] += loss.item()
-            for key in batchMetrics:
-                aggregatedMetrics[key] += batchMetrics[key]
+            with autocast(device_type = device):
+                prediction = model(image)
+                loss = criterion(prediction, groundTruth)
+
+                batchMetrics = metricsCalculator.computeMetrics(prediction, groundTruth)
+                aggregatedMetrics['Loss'] += loss.item()
+                for key in batchMetrics:
+                    aggregatedMetrics[key] += batchMetrics[key]
 
     averagedMetrics = {key: value / len(validationDataloader) for key, value in aggregatedMetrics.items()}
 
@@ -68,9 +75,10 @@ def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, sch
     validationDiceScorePlot = []
     validationIoUScorePlot = []
     metricsCalculator = Metrics(model.numClasses, device)
+    scaler = GradScaler()
 
     for epoch in range(epochs):
-        trainingMetrics = trainOneEpoch(model, trainingDataloader, optimizer, criterion, device, metricsCalculator)
+        trainingMetrics = trainOneEpoch(model, trainingDataloader, optimizer, scaler, criterion, device, metricsCalculator)
         validationMetrics = validateOneEpoch(model, validationDataloader, criterion, device, metricsCalculator)
         scheduler.step(validationMetrics['Loss'])
 
