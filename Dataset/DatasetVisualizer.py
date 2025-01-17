@@ -1,14 +1,13 @@
 import numpy as np
-from ImageDataset import ImageDataset
+from MyDataset import MyDataset
 from matplotlib.pyplot import subplots, draw, show
 from matplotlib.lines import Line2D
-from configurationFile import CLASS_DICTIONARY, TRAINING_PATH
+from configurationFile import CLASS_DICTIONARY, ALL_PATH
 
 class DatasetVisualizer:
     def __init__(self, rootPath):
         self.rootPath = rootPath
         self.dataset = self.loadDataset()
-
         self.currentIndex = 0
         self.figure, self.axes = subplots(1, 2, figsize = (10, 5))
         self.figure.subplots_adjust(left = 0.01, right = 0.99, top = 0.95, bottom = 0.01, wspace = 0.025)
@@ -19,8 +18,8 @@ class DatasetVisualizer:
         show()
 
     def loadDataset(self):
-        dataset = ImageDataset(self.rootPath)
-        print(f"Total number of samples in the dataset: {len(dataset)}")
+        dataset = MyDataset(self.rootPath)
+        print(f'Total number of samples in the dataset: {len(dataset)}')
         return dataset
 
     def calculateClassCoverage(self, mask):
@@ -38,7 +37,7 @@ class DatasetVisualizer:
             return classCoverage
 
         except Exception as e:
-            print(f"Error calculating class coverage: {e}")
+            print(f'Error calculating class coverage: {e}')
             raise
 
     def classIndicesToRGB(self, mask):
@@ -54,7 +53,7 @@ class DatasetVisualizer:
             return RGBMask
 
         except Exception as e:
-            print(f"Error converting mask to RGB: {e}")
+            print(f'Error converting mask to RGB: {e}')
             raise
 
     def onKeyPress(self, event):
@@ -65,7 +64,7 @@ class DatasetVisualizer:
             self.currentIndex = (self.currentIndex - 1) % len(self.dataset)
             self.updatePlot()
         else:
-            print("Invalid key pressed. Use left or right arrow keys.")
+            print('Invalid key pressed. Use left or right arrow keys.')
     
     def generateLegend(self, coverage):
         # Labels appear only for the classes which appear in the mask.
@@ -100,4 +99,4 @@ class DatasetVisualizer:
         self.figure.canvas.manager.set_window_title(f'Dataset Visualizer')
         draw()
 
-DatasetVisualizer(TRAINING_PATH)
+DatasetVisualizer(ALL_PATH)
