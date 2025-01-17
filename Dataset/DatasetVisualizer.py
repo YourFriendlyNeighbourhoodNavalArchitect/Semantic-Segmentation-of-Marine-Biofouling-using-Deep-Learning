@@ -25,8 +25,7 @@ class DatasetVisualizer:
     def calculateClassCoverage(self, mask):
         # Calculate the percentage coverage of each class in the mask.
         try:
-            height, width = mask.shape
-            totalPixels = height * width
+            totalPixels = mask.size
             unique, counts = np.unique(mask, return_counts = True)
             classCoverage = {}
 
@@ -41,7 +40,7 @@ class DatasetVisualizer:
             raise
 
     def classIndicesToRGB(self, mask):
-        # Create an RGB image for each colorized mask.
+        # Map class indices to RGB colors.
         try:
             height, width = mask.shape
             RGBMask = np.zeros((height, width, 3), dtype = np.uint8)
