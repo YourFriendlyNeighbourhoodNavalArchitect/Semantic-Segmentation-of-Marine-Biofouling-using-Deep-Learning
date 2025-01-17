@@ -2,7 +2,7 @@ from matplotlib.pyplot import subplots
 from matplotlib.ticker import FuncFormatter, MultipleLocator
 from math import log10, floor
 from os.path import join
-from configurationFile import VISUALISATIONS_PATH
+from configurationFile import VISUALIZATIONS_PATH
 
 def logResults(epoch, trainingMetrics, validationMetrics):
     # CMD outputs of key metrics to sanity-check training.
@@ -27,7 +27,7 @@ def ticksFormat(x, pos):
 
 def saveTrainingPlot(figure, trialNumber):
     # Save the final plot of a trial as a PNG.
-    path = join(VISUALISATIONS_PATH, f'trainingPlot{trialNumber}.png')
+    path = join(VISUALIZATIONS_PATH, f'trainingPlot{trialNumber}.png')
     figure.savefig(path, dpi = 600)
     print(f'Training plot saved in {path}.')
     return path

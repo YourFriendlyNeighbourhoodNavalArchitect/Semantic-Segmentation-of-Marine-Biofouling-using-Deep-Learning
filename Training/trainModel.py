@@ -3,9 +3,9 @@ from torch.backends import cudnn
 from trainingInitialization import getDataloaders, getOptimizer, initializeModel, setupDevice, initializeLossFunction
 from trainingPreparation import trainingLoop
 from trainingFinalization import saveONNX, saveResults, deleteResiduals
-from configurationFile import MODEL_PATH, NUM_CLASSES, TRAINING_PATH, RESOLUTION, VISUALISATIONS_PATH
+from configurationFile import MODEL_PATH, NUM_CLASSES, RESOLUTION, VISUALIZATIONS_PATH
 
-def trainModel(modelSavePath, trainingPlotSavePath, dataPath, modelFlag, device, numClasses, numTrials):
+def trainModel(modelSavePath, trainingPlotSavePath, modelFlag, device, numClasses, numTrials):
     # Ensure reproducibility between runs.
     cudnn.deterministic = True
     cudnn.benchmark = False
@@ -20,7 +20,7 @@ def trainModel(modelSavePath, trainingPlotSavePath, dataPath, modelFlag, device,
         # Common hyperparameter ranges drawn from literature.
         learningRate = trial.suggest_float('learningRate', 1e-4, 1e-3)
         batchSize = trial.suggest_categorical('batchSize', [8, 16])
-        epochs = trial.suggest_int('epochs', 2, 3)
+        epochs = trial.suggest_int('epochs', 10, 20)
 
         criterion = initializeLossFunction()
         model = initializeModel(modelFlag = modelFlag, inChannels = 3, numClasses = numClasses, device = device)
@@ -47,4 +47,4 @@ def trainModel(modelSavePath, trainingPlotSavePath, dataPath, modelFlag, device,
 modelFlag = False
 device = setupDevice()
 numTrials = 1
-trainModel(MODEL_PATH, VISUALISATIONS_PATH, TRAINING_PATH, modelFlag, device, NUM_CLASSES, numTrials)
+trainModel(MODEL_PATH, VISUALIZATIONS_PATH, modelFlag, device, NUM_CLASSES, numTrials)
