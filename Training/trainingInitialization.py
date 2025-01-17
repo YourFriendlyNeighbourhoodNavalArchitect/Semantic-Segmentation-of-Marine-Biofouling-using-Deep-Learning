@@ -1,20 +1,17 @@
-from torch import Generator, optim
+from torch import optim
 from torch.cuda import is_available
 from torch.nn import CrossEntropyLoss
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from ImageDataset import ImageDataset
+from MyDataset import MyDataset
 from UNet import UNet
 from SimpleCNN import SimpleCNN
 from initializeWeights import initializeWeights
-from configurationFile import SEED
+from configurationFile import TRAINING_PATH, VALIDATION_PATH
 
-def getDataloaders(dataPath, batchSize):
-    trainingDataset = ImageDataset(dataPath)
-    # Ensure reproducibility, using a global seed to split the data.
-    generator = Generator().manual_seed(SEED)
-    # Training and validation split drawn from literature.
-    trainingDataset, validationDataset = random_split(trainingDataset, [0.8, 0.2], generator = generator)
+def getDataloaders(batchSize):
+    trainingDataset = MyDataset(TRAINING_PATH)
+    validationDataset = MyDataset(VALIDATION_PATH)
     trainingDataloader = DataLoader(dataset = trainingDataset, batch_size = batchSize, shuffle = True, pin_memory = True)
     # Shuffling is not required during validation.
     validationDataloader = DataLoader(dataset = validationDataset, batch_size = batchSize, shuffle = False, pin_memory = True)
@@ -43,10 +40,10 @@ def initializeModel(modelFlag, inChannels, numClasses, device):
 def setupDevice():
     if is_available():
         device = 'cuda'
-        print(f"Using GPU.")
+        print(f'Using GPU.')
     else:
         device = 'cpu'
-        print(f"Using CPU.")
+        print(f'Using CPU.')
     return device
 
 def initializeLossFunction():

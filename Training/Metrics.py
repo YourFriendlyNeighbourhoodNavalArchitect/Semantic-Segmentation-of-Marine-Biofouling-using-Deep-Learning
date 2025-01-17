@@ -17,11 +17,8 @@ class Metrics:
 
     def computeMetrics(self, prediction, groundTruth):
         prediction = argmax(prediction, dim = 1)
-        metrics = {
-            'Dice Coefficient': self.diceScore(prediction, groundTruth),
-            'IoU': self.IoU(prediction, groundTruth),
-            'Accuracy': self.accuracy(prediction, groundTruth),
-            'Precision': self.precision(prediction, groundTruth),
-            'Recall': self.recall(prediction, groundTruth)}
+        metrics = {'Dice Coefficient': self.diceScore(prediction, groundTruth), 'IoU': self.IoU(prediction, groundTruth),
+                   'Accuracy': self.accuracy(prediction, groundTruth), 'Precision': self.precision(prediction, groundTruth),
+                   'Recall': self.recall(prediction, groundTruth)}
 
         return metrics

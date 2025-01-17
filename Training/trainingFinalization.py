@@ -11,24 +11,20 @@ def saveONNX(model, device, inputShape, savePath, trialNumber):
     path = join(savePath, f'modelTrial{trialNumber}.onnx')
     # Constant folding improves efficiency.
     export(model, dummyInput, path, export_params = True, 
-                      opset_version = 12, do_constant_folding = True,
-                      input_names = ['Input'], output_names = ['Output'])
-    print(f"Model for trial {trialNumber} saved in ONNX format at {path}.")
+           opset_version = 12, do_constant_folding = True,
+           input_names = ['Input'], output_names = ['Output'])
+    print(f'Model for trial {trialNumber} saved in ONNX format at {path}.')
     return path
 
 def saveResults(trial, trainingMetrics, validationMetrics, savePath):
     # Fetch performance metrics and hyperparameter values in JSON format for future reference.
-    results = {
-        'trialNumber': trial.number,
-        'trainingMetrics': trainingMetrics,
-        'validationMetrics': validationMetrics,
-        'hyperparameters': trial.params
-    }
+    results = {'trialNumber': trial.number, 'trainingMetrics': trainingMetrics,
+               'validationMetrics': validationMetrics, 'hyperparameters': trial.params}
 
     path = join(savePath, f'resultsTrial{trial.number}.json')
     with open(path, 'w') as f:
         dump(results, f, indent = 4)
-    print(f"Results for trial {trial.number} saved at {path}.")
+    print(f'Results for trial {trial.number} saved at {path}.')
     return path
 
 def deleteResiduals(savedFiles, bestTrialNumber, modelSavePath, trainingPlotSavePath, modelFlag):

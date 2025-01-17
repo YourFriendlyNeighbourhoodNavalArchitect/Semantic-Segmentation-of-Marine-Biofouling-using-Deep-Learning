@@ -26,7 +26,7 @@ def trainModel(modelSavePath, trainingPlotSavePath, dataPath, modelFlag, device,
         model = initializeModel(modelFlag = modelFlag, inChannels = 3, numClasses = numClasses, device = device)
         optimizer, scheduler = getOptimizer(model.parameters(), learningRate)
 
-        trainingDataloader, validationDataloader = getDataloaders(dataPath, batchSize)
+        trainingDataloader, validationDataloader = getDataloaders(batchSize)
         trainingMetrics, validationMetrics, PNGPath = trainingLoop(model, trainingDataloader, validationDataloader, optimizer, scheduler, criterion, epochs, device, trialNumber)
         
         inputShape = (1, 3, *RESOLUTION)
@@ -46,5 +46,5 @@ def trainModel(modelSavePath, trainingPlotSavePath, dataPath, modelFlag, device,
 
 modelFlag = False
 device = setupDevice()
-numTrials = 5
+numTrials = 1
 trainModel(MODEL_PATH, VISUALISATIONS_PATH, TRAINING_PATH, modelFlag, device, NUM_CLASSES, numTrials)

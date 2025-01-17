@@ -6,14 +6,14 @@ from configurationFile import VISUALISATIONS_PATH
 
 def logResults(epoch, trainingMetrics, validationMetrics):
     # CMD outputs of key metrics to sanity-check training.
-    print(f"\nEpoch {epoch + 1} results:")
-    print("Training Metrics:")
+    print(f'\nEpoch {epoch + 1} results:')
+    print('Training Metrics:')
     for key, value in trainingMetrics.items():
-        print(f"{key}: {value:.4f}")
-    print("Validation Metrics:")
+        print(f'{key}: {value:.4f}')
+    print('Validation Metrics:')
     for key, value in validationMetrics.items():
-        print(f"{key}: {value:.4f}")
-    print("\n")
+        print(f'{key}: {value:.4f}')
+    print('\n')
 
 def ticksFormat(x, pos):
     # Dummy function to format y-axis ticks.
@@ -29,7 +29,7 @@ def saveTrainingPlot(figure, trialNumber):
     # Save the final plot of a trial as a PNG.
     path = join(VISUALISATIONS_PATH, f'trainingPlot{trialNumber}.png')
     figure.savefig(path, dpi = 600)
-    print(f"Training plot saved in {path}.")
+    print(f'Training plot saved in {path}.')
     return path
 
 def plotMetrics(trainingLossPlot, validationLossPlot, diceScorePlot, IoUScorePlot, trialNumber):

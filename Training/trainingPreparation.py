@@ -1,20 +1,15 @@
 from tqdm import tqdm
 from torch import no_grad, Tensor
-from torch.amp import autocast, GradScaler
+from torch.amp.autocast_mode import autocast
+from torch.amp.grad_scaler import GradScaler
 from trainingVisualization import logResults, plotMetrics
 from Metrics import Metrics
 
 def trainOneEpoch(model, trainingDataloader, optimizer, scaler, criterion, device, metricsCalculator):
     model.train()
-    aggregatedMetrics = {
-        'Loss': 0,
-        'Dice Coefficient': 0,
-        'IoU': 0,
-        'Accuracy': 0,
-        'Precision': 0,
-        'Recall': 0}
+    aggregatedMetrics = {'Loss': 0, 'Dice Coefficient': 0, 'IoU': 0, 'Accuracy': 0, 'Precision': 0, 'Recall': 0}
 
-    for imagePair in tqdm(trainingDataloader, desc = "Training"):
+    for imagePair in tqdm(trainingDataloader, desc = 'Training'):
         # Send data to GPU.
         image = imagePair[0].to(device)
         groundTruth = imagePair[1].to(device)
@@ -43,16 +38,10 @@ def trainOneEpoch(model, trainingDataloader, optimizer, scaler, criterion, devic
 
 def validateOneEpoch(model, validationDataloader, criterion, device, metricsCalculator):
     model.eval()
-    aggregatedMetrics = {
-        'Loss': 0,
-        'Dice Coefficient': 0,
-        'IoU': 0,
-        'Accuracy': 0,
-        'Precision': 0,
-        'Recall': 0}
+    aggregatedMetrics = {'Loss': 0, 'Dice Coefficient': 0, 'IoU': 0, 'Accuracy': 0, 'Precision': 0, 'Recall': 0}
 
     with no_grad():
-        for imagePair in tqdm(validationDataloader, desc = "Validation"):
+        for imagePair in tqdm(validationDataloader, desc = 'Validation'):
             image = imagePair[0].to(device)
             groundTruth = imagePair[1].to(device)
 
