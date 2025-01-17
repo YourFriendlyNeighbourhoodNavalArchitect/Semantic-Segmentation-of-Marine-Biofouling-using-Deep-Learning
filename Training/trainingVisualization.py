@@ -55,7 +55,7 @@ def plotMetrics(trainingLossPlot, validationLossPlot, diceScorePlot, IoUScorePlo
         axis.set_xlim(1, len(trainingLossPlot))
         axis.xaxis.set_major_locator(MultipleLocator(1))
         tickPositions = list(range(1, len(trainingLossPlot) + 1))
-        tickLabels = [str(x) if x % 5 == 0 or x == 1 else '' for x in tickPositions]
+        tickLabels = [str(x) if x % 10 == 0 or x == 1 else '' for x in tickPositions]
         axis.set_xticks(tickPositions)
         axis.set_xticklabels(tickLabels, fontsize = 14)
         axis.yaxis.set_tick_params(labelsize = 14) 
