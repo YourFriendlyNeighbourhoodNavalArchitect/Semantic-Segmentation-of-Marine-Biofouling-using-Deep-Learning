@@ -11,7 +11,6 @@ CLASS_DICTIONARY = {
 }
 
 # Project configuration variables.
-SEED = 29
 RESOLUTION = (304, 304)
 NUM_CLASSES = len(CLASS_DICTIONARY)
 SPLIT_RATIOS = (0.7, 0.15, 0.15)
@@ -20,5 +19,5 @@ TRAINING_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TRAINING'
 VALIDATION_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\VALIDATION'
 TESTING_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TESTING'
 MODEL_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Trained models'
-VISUALISATIONS_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Visualizations'
+VISUALIZATIONS_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\OUTPUTS\Visualizations'
 API_KEY = 'REMOVED_LABELBOX_API_KEY'
