@@ -10,7 +10,7 @@ def videoToFrames(pathIn, pathOut, frameRate):
     savedFrames = 0
     video = VideoCapture(pathIn)
     if not video.isOpened():
-        print(f"Unable to open video file at {pathIn}.")
+        print(f'Unable to open video file at {pathIn}.')
         return
 
     while True:
@@ -20,12 +20,12 @@ def videoToFrames(pathIn, pathOut, frameRate):
             break
 
         imwrite(join(pathOut, f'frame{count}.jpg'), image)
-        print(f"Read a new frame at {count * frameRate} seconds.")
+        print(f'Read a new frame at {count * frameRate} seconds.')
         savedFrames += 1
         count += 1
     
     video.release()
-    print(f"Video processing complete. {savedFrames} frames saved to {pathOut}.")
+    print(f'Video processing complete. {savedFrames} frames saved to {pathOut}.')
       
 pathIn = join(ALL_PATH, r'Videos\Cage.mp4')
 pathOut = join(ALL_PATH, 'Videos')
