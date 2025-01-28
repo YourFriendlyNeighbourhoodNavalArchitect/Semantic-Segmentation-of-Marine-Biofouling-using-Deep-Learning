@@ -1,19 +1,20 @@
 from json import load
 from os.path import join
 from shutil import copy
-from configurationFile import NUM_CLASSES, SPLIT_RATIOS, ALL_PATH, TRAINING_PATH, VALIDATION_PATH, TESTING_PATH
+from math import log
+from configurationFile import NUM_CLASSES, SPLIT_RATIOS, ALL_PATH, TRAINING_PATH, VALIDATION_PATH
 
 class SubsetSplit:
-    def __init__(self, metadataPath, rootPath, trainingPath, validationPath, testingPath):
+    def __init__(self, metadataPath, rootPath, trainingPath, validationPath):
         self.metadataPath = metadataPath
         self.rootPath = rootPath
         self.trainingPath = trainingPath
         self.validationPath = validationPath
-        self.testingPath = testingPath
         with open(self.metadataPath, 'r') as file:
             self.metadata = load(file)
             self.totalImages = len(self.metadata)
-
+        self.globalClassDistribution = {i: count / self.totalImages for i, count in self.countClassIndices().items()}
+        
         self.splitDataset()
 
     def parseSimilarity(self, similarityString):
@@ -27,132 +28,120 @@ class SubsetSplit:
                 similaritySet.add(int(part))
         return similaritySet
 
-    def calculateClassDistribution(self, IDs = None):
+    def countClassIndices(self, IDs = None):
         # Step 1: Calculate class distribution.
-        classDistribution = {i: 0 for i in range(NUM_CLASSES)}
+        classIndexCount = {i: 0 for i in range(NUM_CLASSES)}
         relevantMetadata = self.metadata if IDs is None else {str(ID): self.metadata[str(ID)] for ID in IDs}
-        totalImages = len(relevantMetadata)
         for metadata in relevantMetadata.values():
-            uniqueClasses = metadata.get('UniqueClassIndices', [])
-            for classIndex in uniqueClasses:
-                classDistribution[classIndex] += 1
-        classDistribution = {classIndex : count / totalImages if totalImages > 0 else 0 for classIndex, count in classDistribution.items()}
-        return classDistribution
-
-    def countClassIndices(self, IDs):
-        # Helper function to count class occurences.
-        classIndexCount = {}
-        for ID in IDs:
-            classIndices = self.metadata[str(ID)].get('UniqueClassIndices', [])
+            classIndices = metadata.get('UniqueClassIndices', [])
             for index in classIndices:
-                classIndexCount[index] = classIndexCount.get(index, 0) + 1
+                classIndexCount[index] += 1
         return classIndexCount
 
     def groupBySimilarity(self):
         # Step 2: Group images by "Similarity" property.
         similarityGroups = {}
-        independentImages = []
+        visitedIDs = set()
         for ID, metadata in self.metadata.items():
-            if not metadata.get('Similarity'):
-                # Store independent images separately.
-                independentImages.append({'ID': int(ID), 'underwater': metadata.get('Underwater'), 
-                                          'classIndices': self.countClassIndices([int(ID)])})
+            if int(ID) in visitedIDs:
                 continue
-
             currentGroup = {int(ID)}
-            currentGroup.update(self.parseSimilarity(metadata['Similarity']))
+            similarityString = metadata.get('Similarity')
+            if similarityString:
+                currentGroup.update(self.parseSimilarity(similarityString))
             groupClassIndexCount = self.countClassIndices(currentGroup)
-            groupMetadata = {'notUnderwater': any(self.metadata[str(image)].get('Underwater') == 'no' for image in currentGroup),
-                             'classIndices': groupClassIndexCount}
+            groupMetadata = {'classIndices': groupClassIndexCount, 'groupSize': len(currentGroup)}
             similarityGroups[frozenset(currentGroup)] = groupMetadata
-
-        return similarityGroups, independentImages
-    
-    def decisionMaking(self, asset, trainingSet, validationSet, testingSet):
-        # Helper function to determine the best subset for a given asset.
-        # Soft constraints are applied regarding split ratios and class distribution imbalance.
-        globalClassDistribution = self.calculateClassDistribution()
-        trainingClassDistribution = self.calculateClassDistribution(trainingSet)
-        validationClassDistribution = self.calculateClassDistribution(validationSet)
-        testingClassDistribution = self.calculateClassDistribution(testingSet)
-        bestSubset = None
-        bestImbalance = float('inf')
+            visitedIDs.update(currentGroup)
         
-        for subset, subsetClassDistribution, targetRatio, currentSet in [('training', trainingClassDistribution, SPLIT_RATIOS[0], trainingSet),
-                                                                         ('validation', validationClassDistribution, SPLIT_RATIOS[1], validationSet),
-                                                                         ('testing', testingClassDistribution, SPLIT_RATIOS[2], testingSet)]:
-            if len(currentSet) / self.totalImages < targetRatio:
-                currentImbalance = sum(abs(subsetClassDistribution[i] + (1 if i in asset['classIndices'] else 0) - globalClassDistribution[i]) 
-                                       for i in range(NUM_CLASSES))
-                if currentImbalance < bestImbalance:
-                    bestImbalance = currentImbalance
-                    bestSubset = subset
+        return similarityGroups
+    
+    def calculateJSD(self, P, Q):
+        # Jensen-Shannon divergence measures the similarity between two distributions.
+        # Minimizing the JSD results in maximum similarity [https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence].
+        p = [P.get(i, 0) for i in range(NUM_CLASSES)]
+        q = [Q.get(i, 0) for i in range(NUM_CLASSES)]
+        m = [(pi + qi) / 2 for pi, qi in zip(p, q)]
+        
+        KL = lambda dist, mid: sum(d * log(d / m) for d, m in zip(dist, mid) if d > 0 and m > 0)
+        return (KL(p, m) + KL(q, m)) / 2
 
+    def decisionMaking(self, metadata, trainingSet, validationSet):
+        # Helper function to determine the best subset for a given asset.
+        # Soft constraints are applied regarding split ratios and JSD.
+        bestSubset = None
+        bestJSD = float('inf')
+        
+        for setFlag, currentSet, targetRatio in [('training', trainingSet, SPLIT_RATIOS[0]), ('validation', validationSet, SPLIT_RATIOS[1])]:
+            if len(currentSet) / self.totalImages < targetRatio:
+                subsetClassCounts = self.countClassIndices(currentSet)
+                newSize = len(currentSet) + metadata['groupSize']
+                newClassCounts = {i: subsetClassCounts[i] + metadata['classIndices'][i] for i in range(NUM_CLASSES)}
+                newDistribution = {i: count / newSize for i, count in newClassCounts.items()}
+                
+                currentJSD = self.calculateJSD(newDistribution, self.globalClassDistribution)
+                if currentJSD < bestJSD:
+                    bestJSD = currentJSD
+                    bestSubset = setFlag
+        
         return bestSubset
 
-    def assignToSubsets(self, similarityGroups, independentImages):
+    def assignToSubsets(self, similarityGroups):
         trainingSet = set()
         validationSet = set()
-        testingSet = set()
 
-        # Force-place non-underwater images into testing set.
-        notUnderwaterGroups = {group: metadata for group, metadata in similarityGroups.items() if metadata['notUnderwater']}
-        for group in notUnderwaterGroups:
-            testingSet.update(group)
-            del similarityGroups[group]
-        # Sort the remaining groups by size.
-        sortedGroups = similarityGroups.items()
-
-        for group, metadata in sortedGroups:
-            for assetID in group:
-                asset = self.metadata[str(assetID)]
-                asset['classIndices'] = metadata['classIndices']
-                bestSubset = self.decisionMaking(asset, trainingSet, validationSet, testingSet)
-                if bestSubset == 'training':
-                    trainingSet.add(assetID)
-                elif bestSubset == 'validation':
-                    validationSet.add(assetID)
-                else:
-                    testingSet.add(assetID)
-
-        for image in independentImages:
-            bestSubset = self.decisionMaking(image, trainingSet, validationSet, testingSet)
+        # Prioritize larger groups.
+        for IDs, metadata in similarityGroups.items():
+            bestSubset = self.decisionMaking(metadata, trainingSet, validationSet)
             if bestSubset == 'training':
-                trainingSet.add(image['ID'])
-            elif bestSubset == 'validation':
-                validationSet.add(image['ID'])
+                trainingSet.update(IDs)
             else:
-                testingSet.add(image['ID'])
+                validationSet.update(IDs)
 
-        return trainingSet, validationSet, testingSet
+        return trainingSet, validationSet
+
+    def validateSplits(self, trainingSet, validationSet):
+        totalAssigned = len(trainingSet) + len(validationSet)
+        if totalAssigned != self.totalImages:
+            print(f'Mismatch in total assigned images: {totalAssigned} != {self.totalImages}')
+        
+        # Validate that no overlap has occured.
+        if trainingSet & validationSet:
+            print('Overlap detected between subsets.')
+
+        # Validate split ratios.
+        trainingRatio = len(trainingSet) / self.totalImages
+        validationRatio = len(validationSet) / self.totalImages
+        print(f'Training Ratio: {trainingRatio}')
+        print(f'Validation Ratio: {validationRatio}')
+
+        # Validate class distribution.
+        trainingDistribution = {key: value / len(trainingSet) if trainingSet else 0 for key, value in self.countClassIndices(trainingSet).items()}
+        validationDistribution = {key: value / len(validationSet) if validationSet else 0 for key, value in self.countClassIndices(validationSet).items()}
+        print(f'Global Class Distribution: {self.globalClassDistribution}')
+        print(f'Training Class Distribution: {trainingDistribution}')
+        print(f'Validation Class Distribution: {validationDistribution}')            
 
     def copyToPath(self, filename, path):
         copy(join(self.rootPath, filename), join(path, filename))
+    
+    def copySubset(self, subset, path):
+        for ID in subset:
+            imagePath = fr'Images\{ID}.jpg'
+            maskPath = fr'Masks\{ID}.npy'
+            self.copyToPath(imagePath, path)
+            self.copyToPath(maskPath, path)
 
     def splitDataset(self):
-        # Split the original dataset into training, validation and testing subsets.
+        # Split the original dataset into training and validation subsets.
         # Various requirements must be respected.
-        similarityGroups, independentImages = self.groupBySimilarity()
-        trainingSet, validationSet, testingSet = self.assignToSubsets(similarityGroups, independentImages)
-        for ID in trainingSet:
-            imagePath = fr'Images\{ID}.jpg'
-            maskPath = fr'Masks\{ID}.npy'
-            self.copyToPath(imagePath, self.trainingPath)
-            self.copyToPath(maskPath, self.trainingPath)
-        for ID in validationSet:
-            imagePath = fr'Images\{ID}.jpg'
-            maskPath = fr'Masks\{ID}.npy'
-            self.copyToPath(imagePath, self.validationPath)
-            self.copyToPath(maskPath, self.validationPath)
-        for ID in testingSet:
-            imagePath = fr'Images\{ID}.jpg'
-            maskPath = fr'Masks\{ID}.npy'
-            self.copyToPath(imagePath, self.testingPath)
-            self.copyToPath(maskPath, self.testingPath)
-
+        similarityGroups = self.groupBySimilarity()
+        trainingSet, validationSet = self.assignToSubsets(similarityGroups)
+        self.validateSplits(trainingSet, validationSet)
+        self.copySubset(trainingSet, self.trainingPath)
+        self.copySubset(validationSet, self.validationPath)
         print(f'Training subset: ', list(trainingSet))
         print(f'Validation subset: ', list(validationSet))
-        print(f'Testing subset: ', list(testingSet))
 
 metadataPath = join(ALL_PATH, r'Masks\Metadata.json')
-SubsetSplit(metadataPath, ALL_PATH, TRAINING_PATH, VALIDATION_PATH, TESTING_PATH)
+SubsetSplit(metadataPath, ALL_PATH, TRAINING_PATH, VALIDATION_PATH)
