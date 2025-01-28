@@ -2,7 +2,7 @@ import numpy as np
 from MyDataset import MyDataset
 from matplotlib.pyplot import subplots, draw, show
 from matplotlib.lines import Line2D
-from configurationFile import CLASS_DICTIONARY, ALL_PATH
+from configurationFile import CLASS_DICTIONARY, ALL_PATH, TRAINING_PATH, VALIDATION_PATH
 
 class DatasetVisualizer:
     def __init__(self, rootPath):
@@ -11,7 +11,7 @@ class DatasetVisualizer:
         self.currentIndex = 0
         self.figure, self.axes = subplots(1, 2, figsize = (10, 5))
         self.figure.subplots_adjust(left = 0.01, right = 0.99, top = 0.95, bottom = 0.01, wspace = 0.025)
-        self.classColours = CLASS_DICTIONARY
+        self.classColors = CLASS_DICTIONARY
 
         self.updatePlot()
         self.figure.canvas.mpl_connect('key_press_event', self.onKeyPress)
@@ -29,7 +29,7 @@ class DatasetVisualizer:
             unique, counts = np.unique(mask, return_counts = True)
             classCoverage = {}
 
-            for className, properties in self.classColours.items():
+            for className, properties in self.classColors.items():
                 classIndex = properties['index']
                 classPixels = counts[np.where(unique == classIndex)][0] if classIndex in unique else 0
                 classCoverage[className] = (classPixels / totalPixels) * 100
@@ -44,10 +44,10 @@ class DatasetVisualizer:
         try:
             height, width = mask.shape
             RGBMask = np.zeros((height, width, 3), dtype = np.uint8)
-            for _, properties in self.classColours.items():
+            for _, properties in self.classColors.items():
                 classIndex = properties['index']
-                colour = properties['colour']
-                RGBMask[mask == classIndex] = colour
+                color = properties['color']
+                RGBMask[mask == classIndex] = color
             
             return RGBMask
 
@@ -71,7 +71,7 @@ class DatasetVisualizer:
 
         legendLabels = [f'{className}: {filteredCoverage[className]:.2f}%' for className in filteredCoverage]
         handles = [Line2D([0], [0], marker = 's', color = 'w', 
-                   markerfacecolor = np.array(self.classColours[className]['colour']) / 255, 
+                   markerfacecolor = np.array(self.classColors[className]['color']) / 255, 
                    markersize = 6) for className in filteredCoverage]
         return legendLabels, handles
 
@@ -98,4 +98,4 @@ class DatasetVisualizer:
         self.figure.canvas.manager.set_window_title(f'Dataset Visualizer')
         draw()
 
-DatasetVisualizer(ALL_PATH)
+DatasetVisualizer(TRAINING_PATH)
