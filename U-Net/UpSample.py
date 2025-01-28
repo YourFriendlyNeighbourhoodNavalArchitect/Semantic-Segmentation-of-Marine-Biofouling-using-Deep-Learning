@@ -7,7 +7,11 @@ class UpSample(NN.Module):
     # Building block of the expansive path of the network.
     def __init__(self, inChannels, outChannels):
         super().__init__()
-        self.greenArrow = NN.ConvTranspose2d(inChannels, inChannels // 2, kernel_size = 2, stride = 2)
+        # Modern decoder architectures use upsampling blocks, instead of transpose convolutions.
+        self.greenArrow = NN.Sequential(NN.Upsample(scale_factor = 2, mode = 'bilinear', align_corners = False),
+                                        NN.Conv2d(inChannels, inChannels // 2, kernel_size = 3, padding = 1),
+                                        NN.BatchNorm2d(inChannels // 2),
+                                        NN.ReLU(inplace = True))
         # Implementation of the attention mechanism. 
         # Intermediate channels are chosen for computational efficiency and dimensionality reduction.
         self.attentionGate = AttentionGates(decoderInput = inChannels // 2, encoderInput = inChannels // 2, 

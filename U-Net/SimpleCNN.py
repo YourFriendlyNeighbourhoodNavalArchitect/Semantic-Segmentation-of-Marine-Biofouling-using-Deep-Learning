@@ -38,5 +38,5 @@ class SimpleCNN(NN.Module):
         x = relu(self.batchNormFour(self.fullyConnectedOne(x)))
         x = self.fullyConnectedTwo(x)
         
-        x = interpolate(x, scale_factor = 8, mode = 'bilinear', align_corners = True)
+        x = interpolate(x, scale_factor = 8, mode = 'bilinear', align_corners = False)
         return x
