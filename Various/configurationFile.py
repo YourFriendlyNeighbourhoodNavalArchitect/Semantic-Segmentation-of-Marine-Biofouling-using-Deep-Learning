@@ -1,19 +1,20 @@
 CLASS_DICTIONARY = {
     # Model performs classification amongst the classes shown below.
-    'Clean Hull': {'index': 0, 'colour': [0, 255, 0]},
-    'Slime': {'index': 1, 'colour': [255, 255, 51]},
-    'Algae': {'index': 2, 'colour': [224, 0, 64]},
-    'Calcareous Deposits': {'index': 3, 'colour': [224, 128, 0]},
-    'Barnacles': {'index': 4, 'colour': [96, 0, 64]},
-    'Molluscs': {'index': 5, 'colour': [0, 224, 192]},
-    'Other': {'index': 6, 'colour': [255, 255, 255]},
-    'Background': {'index': 7, 'colour': [0, 39, 255]}
+    'Clean Hull': {'index': 0, 'color': [0, 255, 0]},
+    'Slime': {'index': 1, 'color': [255, 255, 51]},
+    'Algae': {'index': 2, 'color': [224, 0, 64]},
+    'Calcareous Deposits': {'index': 3, 'color': [224, 128, 0]},
+    'Barnacles': {'index': 4, 'color': [96, 0, 64]},
+    'Molluscs': {'index': 5, 'color': [0, 224, 192]},
+    'Other': {'index': 6, 'color': [255, 255, 255]},
+    'Background': {'index': 7, 'color': [0, 39, 255]}
 }
 
 # Project configuration variables.
+SEED = 29
 RESOLUTION = (304, 304)
 NUM_CLASSES = len(CLASS_DICTIONARY)
-SPLIT_RATIOS = (0.7, 0.15, 0.15)
+SPLIT_RATIOS = (0.8, 0.2)
 ALL_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\ALL'
 TRAINING_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TRAINING'
 VALIDATION_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\VALIDATION'
