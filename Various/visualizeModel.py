@@ -21,9 +21,9 @@ def visualizeModel(modelFlag):
     dot = make_dot(output, params = dict(model.named_parameters()))
     
     if modelFlag:
-        path = join(VISUALIZATIONS_PATH, 'U-Net Architecture Graph')
+        path = join(VISUALIZATIONS_PATH, 'U-Net architecture graph')
     else:
-        path = join(VISUALIZATIONS_PATH, 'Simple CNN Architecture Graph')
+        path = join(VISUALIZATIONS_PATH, 'Simple CNN architecture graph')
     outputPath = dot.render(path, format = 'png', view = True)
     print(f'File saved to {outputPath}.')
 
