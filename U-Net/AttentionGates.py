@@ -7,13 +7,13 @@ class AttentionGates(NN.Module):
     def __init__(self, decoderInput, encoderInput, intermediateChannels):
         super().__init__()
         # Sub-module that processes the decoder input. Kernel size of 1 does not affect spatial dimensions.
-        self.decoderModule = NN.Sequential(NN.Conv2d(decoderInput, intermediateChannels, kernel_size = 1, stride = 1, padding = 0, bias = True),
+        self.decoderModule = NN.Sequential(NN.Conv2d(decoderInput, intermediateChannels, kernel_size = 1),
                                            NN.BatchNorm2d(intermediateChannels))
         # Sub-module that processes the encoder input.
-        self.encoderModule = NN.Sequential(NN.Conv2d(encoderInput, intermediateChannels, kernel_size = 1, stride = 1, padding = 0, bias = True),
+        self.encoderModule = NN.Sequential(NN.Conv2d(encoderInput, intermediateChannels, kernel_size = 1),
                                            NN.BatchNorm2d(intermediateChannels))
         # Attention mechanism, that calculates the required attention coefficients.
-        self.attentionModule = NN.Sequential(NN.Conv2d(intermediateChannels, 1, kernel_size = 1, stride = 1, padding = 0, bias = True),
+        self.attentionModule = NN.Sequential(NN.Conv2d(intermediateChannels, 1, kernel_size = 1),
                                              NN.BatchNorm2d(1),
                                              NN.Sigmoid())
         self.relu = NN.ReLU(inplace = True)
