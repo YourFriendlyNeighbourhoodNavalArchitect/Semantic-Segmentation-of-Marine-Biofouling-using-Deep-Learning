@@ -1,61 +1,48 @@
 from tqdm import tqdm
 from torch import no_grad, Tensor
-from torch.amp.autocast_mode import autocast
-from torch.amp.grad_scaler import GradScaler
 from trainingVisualization import logResults, plotMetrics
-from Metrics import Metrics
+from computeMetrics import computeMetrics
 
-def trainOneEpoch(model, trainingDataloader, optimizer, scaler, criterion, device, metricsCalculator):
+def trainOneEpoch(model, trainingDataloader, optimizer, criterion, device):
     model.train()
     aggregatedMetrics = {'Loss': 0, 'Dice Coefficient': 0, 'IoU': 0, 'Accuracy': 0, 'Precision': 0, 'Recall': 0}
 
-    for imagePair in tqdm(trainingDataloader, desc = 'Training'):
+    for data in tqdm(trainingDataloader, desc = 'Training'):
         # Send data to GPU.
-        image = imagePair[0].to(device)
-        groundTruth = imagePair[1].to(device)
+        image = data[0].to(device)
+        groundTruth = data[1].to(device)
+        prediction = model(image)
         optimizer.zero_grad()
-
-        # Enable Automatic Mixed Precision (AMP), taking advantage of CUDA GPUs.
-        with autocast(device_type = device):
-            prediction = model(image)
-            # Input tensor form: (B, C, H, W)
-            # Ground truth tensor form: (B, H, W)
-            loss = criterion(prediction, groundTruth)
-
-            # Compute metrics.
-            batchMetrics = metricsCalculator.computeMetrics(prediction, groundTruth)
-            aggregatedMetrics['Loss'] += loss.item()
-            for key in batchMetrics:
-                aggregatedMetrics[key] += batchMetrics[key]
-        
-        scaler.scale(loss).backward()
-        scaler.step(optimizer)
-        scaler.update()
+        # Input tensor form: (B, C, H, W)
+        # Ground truth tensor form: (B, H, W)
+        loss = criterion(prediction, groundTruth)
+        aggregatedMetrics['Loss'] += loss.item()
+        loss.backward()
+        optimizer.step()
+        # Compute metrics.
+        batchMetrics = computeMetrics(prediction, groundTruth)
+        for key in batchMetrics:
+            aggregatedMetrics[key] += batchMetrics[key]
 
     averagedMetrics = {key: value / len(trainingDataloader) for key, value in aggregatedMetrics.items()}
-
     return averagedMetrics
 
-def validateOneEpoch(model, validationDataloader, criterion, device, metricsCalculator):
+def validateOneEpoch(model, validationDataloader, criterion, device):
     model.eval()
     aggregatedMetrics = {'Loss': 0, 'Dice Coefficient': 0, 'IoU': 0, 'Accuracy': 0, 'Precision': 0, 'Recall': 0}
 
     with no_grad():
-        for imagePair in tqdm(validationDataloader, desc = 'Validation'):
-            image = imagePair[0].to(device)
-            groundTruth = imagePair[1].to(device)
-
-            with autocast(device_type = device):
-                prediction = model(image)
-                loss = criterion(prediction, groundTruth)
-
-                batchMetrics = metricsCalculator.computeMetrics(prediction, groundTruth)
-                aggregatedMetrics['Loss'] += loss.item()
-                for key in batchMetrics:
-                    aggregatedMetrics[key] += batchMetrics[key]
+        for data in tqdm(validationDataloader, desc = 'Validation'):
+            image = data[0].to(device)
+            groundTruth = data[1].to(device)
+            prediction = model(image)
+            loss = criterion(prediction, groundTruth)
+            aggregatedMetrics['Loss'] += loss.item()
+            batchMetrics = computeMetrics(prediction, groundTruth)
+            for key in batchMetrics:
+                aggregatedMetrics[key] += batchMetrics[key]
 
     averagedMetrics = {key: value / len(validationDataloader) for key, value in aggregatedMetrics.items()}
-
     return averagedMetrics
 
 def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, scheduler, criterion, epochs, device, trialNumber):
@@ -63,12 +50,10 @@ def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, sch
     validationLossPlot = []
     validationDiceScorePlot = []
     validationIoUScorePlot = []
-    metricsCalculator = Metrics(model.numClasses, device)
-    scaler = GradScaler()
 
     for epoch in range(epochs):
-        trainingMetrics = trainOneEpoch(model, trainingDataloader, optimizer, scaler, criterion, device, metricsCalculator)
-        validationMetrics = validateOneEpoch(model, validationDataloader, criterion, device, metricsCalculator)
+        trainingMetrics = trainOneEpoch(model, trainingDataloader, optimizer, criterion, device)
+        validationMetrics = validateOneEpoch(model, validationDataloader, criterion, device)
         scheduler.step(validationMetrics['Loss'])
 
         # Logging of metrics.
