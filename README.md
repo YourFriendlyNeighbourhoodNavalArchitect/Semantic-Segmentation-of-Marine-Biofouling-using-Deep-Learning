@@ -5,7 +5,7 @@ Marine biofouling is the accumulation of organisms like algae, barnacles, and ot
 
 The model facilitates multi-class segmentation of each image into 8 distinct classes.
 
-Metric logging and visualization is available in during training for monitoring progress.
+Metric logging and visualization is available during training for monitoring progress.
 
 Optuna is used for hyperparameter tuning to ensure the model achieves optimal performance.
 
