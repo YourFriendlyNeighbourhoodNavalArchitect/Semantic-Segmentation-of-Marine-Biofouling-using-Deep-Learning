@@ -11,7 +11,7 @@ from configurationFile import CLASS_DICTIONARY, MODEL_PATH, TESTING_PATH
 class ModelTester:
     def __init__(self, modelPath, rootPath, device):
         self.modelPath = modelPath
-        self.rootPath = join(rootPath, 'Images')
+        self.rootPath = rootPath
         self.device = device
         self.testData = self.loadTestData()
         self.currentIndex = 0
