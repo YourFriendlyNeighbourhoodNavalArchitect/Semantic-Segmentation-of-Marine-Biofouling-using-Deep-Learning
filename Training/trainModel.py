@@ -1,14 +1,12 @@
 import optuna
-from torch.backends import cudnn
-from trainingInitialization import getDataloaders, getOptimizer, initializeModel, setupDevice, initializeLossFunction
+from trainingInitialization import getDataloaders, getOptimizer, initializeModel, setupDevice, initializeLossFunction, setSeed
 from trainingPreparation import trainingLoop
 from trainingFinalization import saveONNX, saveResults, deleteResiduals
-from configurationFile import MODEL_PATH, NUM_CLASSES, RESOLUTION, VISUALIZATIONS_PATH
+from configurationFile import SEED, MODEL_PATH, NUM_CLASSES, RESOLUTION, VISUALIZATIONS_PATH
 
 def trainModel(modelSavePath, trainingPlotSavePath, modelFlag, device, numClasses, numTrials):
     # Ensure reproducibility between runs.
-    cudnn.deterministic = True
-    cudnn.benchmark = False
+    setSeed(SEED)
     # List to keep track of all the saved files for each trial.
     savedFiles = []
     # Initiate hyperparameter optimization with respect to validation loss.
@@ -18,9 +16,9 @@ def trainModel(modelSavePath, trainingPlotSavePath, modelFlag, device, numClasse
         trial = study.ask()
         trialNumber = trial.number
         # Common hyperparameter ranges drawn from literature.
-        learningRate = trial.suggest_float('learningRate', 1e-4, 1e-3)
-        batchSize = trial.suggest_categorical('batchSize', [8, 16])
-        epochs = trial.suggest_int('epochs', 10, 20)
+        learningRate = trial.suggest_float('learningRate', 5e-5, 5e-4)
+        batchSize = trial.suggest_categorical('batchSize', [8])
+        epochs = trial.suggest_int('epochs', 200, 300)
 
         criterion = initializeLossFunction()
         model = initializeModel(modelFlag = modelFlag, inChannels = 3, numClasses = numClasses, device = device)
@@ -41,10 +39,10 @@ def trainModel(modelSavePath, trainingPlotSavePath, modelFlag, device, numClasse
     # Obtain optimal trial.
     bestTrial = study.best_trial
     
-    # Clean up non-optimal saved files
+    # Clean up non-optimal saved files.
     deleteResiduals(savedFiles, bestTrial.number, modelSavePath, trainingPlotSavePath, modelFlag)
 
-modelFlag = False
+modelFlag = True
 device = setupDevice()
 numTrials = 1
 trainModel(MODEL_PATH, VISUALIZATIONS_PATH, modelFlag, device, NUM_CLASSES, numTrials)
