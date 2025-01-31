@@ -44,5 +44,5 @@ def trainModel(modelSavePath, trainingPlotSavePath, modelFlag, device, numClasse
 
 modelFlag = True
 device = setupDevice()
-numTrials = 1
+numTrials = 100
 trainModel(MODEL_PATH, VISUALIZATIONS_PATH, modelFlag, device, NUM_CLASSES, numTrials)
