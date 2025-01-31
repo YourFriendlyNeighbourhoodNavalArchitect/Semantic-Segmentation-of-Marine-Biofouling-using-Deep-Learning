@@ -2,9 +2,8 @@ from torch import randn
 from os.path import join
 from torchviz import make_dot
 from torchsummary import summary
-from trainingInitialization import initializeModel
+from trainingInitialization import initializeModel, setupDevice
 from initializeWeights import initializeWeights
-from trainingInitialization import setupDevice
 from configurationFile import NUM_CLASSES, VISUALIZATIONS_PATH, RESOLUTION
 
 def visualizeModel(modelFlag):
