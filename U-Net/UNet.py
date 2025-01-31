@@ -1,9 +1,9 @@
-import torch.nn as NN
+from torch.nn import Module, Conv2d
 from UpSample import UpSample
 from DownSample import DownSample
 from BlueArrow import BlueArrow
 
-class UNet(NN.Module):
+class UNet(Module):
     # Architecture largely based on the original paper.
     # Network output is of the form (B, C, H, W).
     def __init__(self, inChannels, numClasses):
@@ -22,7 +22,7 @@ class UNet(NN.Module):
         self.upConvolutionThree = UpSample(256, 128)
         self.upConvolutionFour = UpSample(128, 64)
 
-        self.output = NN.Conv2d(64, numClasses, kernel_size = 1)
+        self.output = Conv2d(64, numClasses, kernel_size = 1)
         
     def forward(self, x):
         downOne, poolingOne = self.downConvolutionOne(x)
