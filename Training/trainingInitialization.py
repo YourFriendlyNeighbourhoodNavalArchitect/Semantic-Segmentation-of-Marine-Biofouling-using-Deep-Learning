@@ -1,6 +1,11 @@
-from torch import optim
+from random import seed as PythonSeed
+from numpy.random import seed as NumpySeed
+from torch import manual_seed as TorchSeed
+from torch.cuda import manual_seed as CUDASeed
+from torch.backends import cudnn
 from torch.cuda import is_available
-from torch.nn import CrossEntropyLoss
+from torch import optim
+from LossFunction import LossFunction
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from MyDataset import MyDataset
@@ -12,9 +17,9 @@ from configurationFile import TRAINING_PATH, VALIDATION_PATH
 def getDataloaders(batchSize):
     trainingDataset = MyDataset(TRAINING_PATH)
     validationDataset = MyDataset(VALIDATION_PATH)
-    trainingDataloader = DataLoader(dataset = trainingDataset, batch_size = batchSize, shuffle = True, pin_memory = True)
+    trainingDataloader = DataLoader(dataset = trainingDataset, batch_size = batchSize, shuffle = True)
     # Shuffling is not required during validation.
-    validationDataloader = DataLoader(dataset = validationDataset, batch_size = batchSize, shuffle = False, pin_memory = True)
+    validationDataloader = DataLoader(dataset = validationDataset, batch_size = batchSize, shuffle = False)
 
     return trainingDataloader, validationDataloader
 
@@ -22,9 +27,8 @@ def getOptimizer(parameters, learningRate):
     # Weight decay requires careful tuning when implemented alongside batch normalization [https://tinyurl.com/3kzm37tz].
     # For the purposes of this dissertation, we revert to the traditional Adam optimizer, without weight decay.
     optimizer = optim.Adam(parameters, lr = learningRate)
-
     # Learning rate decay routine.
-    scheduler = ReduceLROnPlateau(optimizer, mode = 'min', min_lr = 1e-8)
+    scheduler = ReduceLROnPlateau(optimizer, mode = 'min', min_lr = 1e-7, factor = 0.5)
 
     return optimizer, scheduler
 
@@ -47,5 +51,14 @@ def setupDevice():
     return device
 
 def initializeLossFunction():
-    # Cross entropy loss is a standard choice when it comes to multi-class segmentation.
-    return CrossEntropyLoss()
+    # A weighted combination of cross-entropy and Dice loss is used. 
+    return LossFunction()
+
+def setSeed(seed):
+    # Set global seet to ensure reproducibility.
+    PythonSeed(seed)
+    NumpySeed(seed)
+    TorchSeed(seed)
+    CUDASeed(seed)
+    cudnn.deterministic = True
+    cudnn.benchmark = False
