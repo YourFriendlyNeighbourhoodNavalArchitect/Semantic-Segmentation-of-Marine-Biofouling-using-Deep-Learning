@@ -4,7 +4,7 @@ from torchviz import make_dot
 from torchsummary import summary
 from trainingInitialization import initializeModel, setupDevice
 from initializeWeights import initializeWeights
-from configurationFile import NUM_CLASSES, VISUALIZATIONS_PATH, RESOLUTION
+from configurationFile import RESOLUTION, NUM_CLASSES, VISUALIZATIONS_PATH
 
 def visualizeModel(modelFlag):
     # Dummy script to visualize the network and confirm its structure and output form.
