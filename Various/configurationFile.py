@@ -1,21 +1,20 @@
-CLASS_DICTIONARY = {
-    # Model performs classification amongst the classes shown below.
-    'Clean Hull': {'index': 0, 'color': [0, 255, 0]},
-    'Slime': {'index': 1, 'color': [255, 255, 51]},
-    'Algae': {'index': 2, 'color': [224, 0, 64]},
-    'Calcareous Deposits': {'index': 3, 'color': [224, 128, 0]},
-    'Barnacles': {'index': 4, 'color': [96, 0, 64]},
-    'Molluscs': {'index': 5, 'color': [0, 224, 192]},
-    'Other': {'index': 6, 'color': [255, 255, 255]},
-    'Background': {'index': 7, 'color': [0, 39, 255]}
-}
+# Model performs classification amongst the classes shown below.
+CLASS_DICTIONARY = {'Clean Hull': {'index': 0, 'color': [0, 255, 0]},
+                    'Slime/Algae': {'index': 1, 'color': [255, 255, 106]},
+                    'Calcareous Deposits': {'index': 2, 'color': [255, 87, 51]},
+                    'Barnacles/Molluscs': {'index': 3, 'color': [157, 41, 177]},
+                    'Background/Other': {'index': 4, 'color': [43, 138, 255]}}
 
 # Project configuration variables.
-SEED = 29
+SEED = 4
 RESOLUTION = (304, 304)
 NUM_CLASSES = len(CLASS_DICTIONARY)
-SPLIT_RATIOS = (0.85, 0.15)
+SPLIT_RATIOS = [0.75, 0.25]
+BATCH_SIZE = 16
+WARMUP = 10
+PATIENCE = 50
 ALL_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\ALL'
+METADATA_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\ALL\Masks\Metadata.json'
 TRAINING_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TRAINING'
 VALIDATION_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\VALIDATION'
 TESTING_PATH = r'C:\Users\giann\Desktop\NTUA\THESIS\Thesis\INPUTS\TESTING'
