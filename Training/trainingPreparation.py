@@ -12,10 +12,10 @@ def trainOneEpoch(model, trainingDataloader, optimizer, criterion, device):
         # Send data to GPU.
         image = data[0].to(device)
         groundTruth = data[1].to(device)
-        prediction = model(image)
         optimizer.zero_grad()
         # Input tensor form: (B, C, H, W)
         # Ground truth tensor form: (B, H, W)
+        prediction = model(image)
         loss = criterion(prediction, groundTruth)
         aggregatedMetrics['Loss'] += loss.item()
         loss.backward()
