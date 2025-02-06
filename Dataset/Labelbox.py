@@ -3,7 +3,7 @@ from json import loads, dump
 from requests import Session
 from os.path import exists, splitext, join
 from PIL import Image
-from configurationFile import CLASS_DICTIONARY, API_KEY, ALL_PATH
+from configurationFile import CLASS_DICTIONARY, ALL_PATH, API_KEY
 
 class Labelbox:
     def __init__(self, inputFile, outputDirectory):
@@ -36,17 +36,11 @@ class Labelbox:
             return None
 
     def extractMetadata(self, classifications):
-        # Extract "Underwater", "Location" and "Similarity" properties.
-        location, similarity, underwater = None, None, None
+        # Extract "Similarity" property.
         for classification in classifications:
-            name = classification.get('name')
-            if name == 'Underwater':
-                underwater = classification.get('radio_answer', {}).get('value')
-            elif name == 'Location':
-                location = classification.get('radio_answer', {}).get('value')
-            elif name == 'Similarity':
-                similarity = classification.get('text_answer', {}).get('content')
-        return location, similarity, underwater
+            if classification.get('name') == 'Similarity':
+                return classification.get('text_answer', {}).get('content')
+        return None
 
     def processImage(self, entry):
         # Parse JSON file based on its structure.
@@ -60,7 +54,7 @@ class Labelbox:
         classifications = labels[0].get('annotations', {}).get('classifications', [])
 
         # Extract metadata.
-        location, similarity, underwater = self.extractMetadata(classifications)
+        similarity = self.extractMetadata(classifications)
         # Initialize mask with appropriate dimensions.
         dummyURL = annotations[0].get('mask', {}).get('url')
         dummy = self.downloadMask(dummyURL)
@@ -74,7 +68,6 @@ class Labelbox:
             className = annotation.get('name')
             maskURL = annotation.get('mask', {}).get('url')
             classIndex = CLASS_DICTIONARY.get(className, {}).get('index')
-
             classMask = self.downloadMask(maskURL)
             if classMask is None:
                 print(f'Failed to download mask for {ID}. Skipping entry.')
@@ -84,9 +77,7 @@ class Labelbox:
             fullMask[classMask > 0] = classIndex
             uniqueClasses.add(classIndex)
         
-        self.metadata[ID] = {'UniqueClassIndices': list(uniqueClasses), 'Underwater': underwater,
-                             'Location': location, 'Similarity': similarity}
-
+        self.metadata[ID] = {'uniqueClassIndices': list(uniqueClasses), 'similarity': similarity}
         return ID, fullMask
 
     def saveMetadata(self):

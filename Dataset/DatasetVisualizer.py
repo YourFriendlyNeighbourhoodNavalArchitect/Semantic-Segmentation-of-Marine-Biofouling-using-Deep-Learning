@@ -2,7 +2,7 @@ import numpy as np
 from MyDataset import MyDataset
 from matplotlib.pyplot import subplots, draw, show
 from matplotlib.lines import Line2D
-from configurationFile import CLASS_DICTIONARY, ALL_PATH, TRAINING_PATH, VALIDATION_PATH
+from configurationFile import CLASS_DICTIONARY, TRAINING_PATH, VALIDATION_PATH
 
 class DatasetVisualizer:
     def __init__(self, rootPath):
@@ -12,20 +12,20 @@ class DatasetVisualizer:
         self.figure, self.axes = subplots(1, 2, figsize = (10, 5))
         self.figure.subplots_adjust(left = 0.01, right = 0.99, top = 0.95, bottom = 0.01, wspace = 0.025)
         self.classColors = CLASS_DICTIONARY
-
         self.updatePlot()
         self.figure.canvas.mpl_connect('key_press_event', self.onKeyPress)
         show()
 
     def loadDataset(self):
-        dataset = MyDataset(self.rootPath)
+        dataset = MyDataset(self.rootPath, augmentationFlag = True)
         print(f'Total number of samples in the dataset: {len(dataset)}')
         return dataset
 
     def calculateClassCoverage(self, mask):
         # Calculate the percentage coverage of each class in the mask.
         try:
-            totalPixels = mask.size
+            height, width = mask.shape
+            totalPixels = height * width
             unique, counts = np.unique(mask, return_counts = True)
             classCoverage = {}
 
@@ -68,7 +68,6 @@ class DatasetVisualizer:
     def generateLegend(self, coverage):
         # Labels appear only for the classes which appear in the mask.
         filteredCoverage = {className: classCoverage for className, classCoverage in coverage.items() if classCoverage > 0}
-
         legendLabels = [f'{className}: {filteredCoverage[className]:.2f}%' for className in filteredCoverage]
         handles = [Line2D([0], [0], marker = 's', color = 'w', 
                    markerfacecolor = np.array(self.classColors[className]['color']) / 255, 
