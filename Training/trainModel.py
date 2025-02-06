@@ -40,7 +40,7 @@ def trainModel(modelSavePath, trainingPlotSavePath, modelFlag, device, numClasse
     # Clean up non-optimal saved files.
     deleteResiduals(savedFiles, bestTrial.number, modelSavePath, trainingPlotSavePath, modelFlag)
 
-modelFlag = False
+modelFlag = True
 device = setupDevice()
-numTrials = 1
+numTrials = 50
 trainModel(MODEL_PATH, VISUALIZATIONS_PATH, modelFlag, device, NUM_CLASSES, numTrials)
