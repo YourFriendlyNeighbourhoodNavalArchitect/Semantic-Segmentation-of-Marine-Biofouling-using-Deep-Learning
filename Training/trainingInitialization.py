@@ -17,9 +17,9 @@ from configurationFile import BATCH_SIZE, WARMUP, TRAINING_PATH, VALIDATION_PATH
 def getDataloaders():
     trainingDataset = MyDataset(TRAINING_PATH, augmentationFlag = True)
     validationDataset = MyDataset(VALIDATION_PATH, augmentationFlag = False)
-    trainingDataloader = DataLoader(dataset = trainingDataset, batch_size = BATCH_SIZE, shuffle = True)
+    trainingDataloader = DataLoader(dataset = trainingDataset, batch_size = BATCH_SIZE, shuffle = True, pin_memory = True, num_workers = 8)
     # Shuffling is not required during validation.
-    validationDataloader = DataLoader(dataset = validationDataset, batch_size = BATCH_SIZE, shuffle = False)
+    validationDataloader = DataLoader(dataset = validationDataset, batch_size = BATCH_SIZE, shuffle = False, pin_memory = True, num_workers = 8)
     return trainingDataloader, validationDataloader
 
 def getOptimizer(parameters, learningRate):

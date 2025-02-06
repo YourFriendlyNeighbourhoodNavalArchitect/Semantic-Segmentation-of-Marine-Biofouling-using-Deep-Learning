@@ -40,7 +40,9 @@ def trainModel(modelSavePath, trainingPlotSavePath, modelFlag, device, numClasse
     # Clean up non-optimal saved files.
     deleteResiduals(savedFiles, bestTrial.number, modelSavePath, trainingPlotSavePath, modelFlag)
 
-modelFlag = True
-device = setupDevice()
-numTrials = 50
-trainModel(MODEL_PATH, VISUALIZATIONS_PATH, modelFlag, device, NUM_CLASSES, numTrials)
+if __name__ == '__main__':
+    # Multiprocessing guard.
+    modelFlag = True
+    device = setupDevice()
+    numTrials = 50
+    trainModel(MODEL_PATH, VISUALIZATIONS_PATH, modelFlag, device, NUM_CLASSES, numTrials)
