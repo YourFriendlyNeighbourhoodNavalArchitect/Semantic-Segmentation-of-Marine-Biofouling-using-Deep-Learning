@@ -16,9 +16,9 @@ def saveONNX(model, device, inputShape, savePath, trialNumber):
     print(f'Model for trial {trialNumber} saved in ONNX format at {path}.')
     return path
 
-def saveResults(trial, trainingMetrics, validationMetrics, savePath):
+def saveResults(trial, maxEpochs, trainingMetrics, validationMetrics, savePath):
     # Fetch performance metrics and hyperparameter values in JSON format for future reference.
-    results = {'trialNumber': trial.number, 'trainingMetrics': trainingMetrics,
+    results = {'trialNumber': trial.number, 'maxEpochs': maxEpochs, 'trainingMetrics': trainingMetrics,
                'validationMetrics': validationMetrics, 'hyperparameters': trial.params}
 
     path = join(savePath, f'resultsTrial{trial.number}.json')

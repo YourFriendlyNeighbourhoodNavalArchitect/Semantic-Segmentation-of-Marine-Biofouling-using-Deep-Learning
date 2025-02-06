@@ -4,9 +4,10 @@ from math import log10, floor
 from os.path import join
 from configurationFile import VISUALIZATIONS_PATH
 
-def logResults(epoch, trainingMetrics, validationMetrics):
+def logResults(epoch, currentLR, trainingMetrics, validationMetrics):
     # CMD outputs of key metrics to sanity-check training.
-    print(f'\nEpoch {epoch + 1} results:')
+    print(f'\nEpoch {epoch} results:')
+    print(f'Learning Rate = {currentLR:.6f}')
     print('Training Metrics:')
     for key, value in trainingMetrics.items():
         print(f'{key}: {value:.4f}')
