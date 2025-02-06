@@ -16,7 +16,7 @@ def trainModel(modelSavePath, trainingPlotSavePath, modelFlag, device, numClasse
         trial = study.ask()
         trialNumber = trial.number
         # Common learning rate range found in the relevant literature.
-        learningRate = trial.suggest_float('learningRate', 1e-5, 1e-3)
+        learningRate = trial.suggest_float('learningRate', 5e-5, 5e-4)
 
         criterion = initializeLossFunction()
         model = initializeModel(modelFlag = modelFlag, inChannels = 3, numClasses = numClasses, device = device)
