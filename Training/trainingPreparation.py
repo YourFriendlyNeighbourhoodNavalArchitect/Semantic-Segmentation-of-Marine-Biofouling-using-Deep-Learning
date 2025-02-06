@@ -2,6 +2,7 @@ from tqdm import tqdm
 from torch import no_grad, Tensor
 from trainingVisualization import logResults, plotMetrics
 from computeMetrics import computeMetrics
+from configurationFile import WARMUP, PATIENCE
 
 def trainOneEpoch(model, trainingDataloader, optimizer, criterion, device):
     model.train()
@@ -45,23 +46,42 @@ def validateOneEpoch(model, validationDataloader, criterion, device):
     averagedMetrics = {key: value / len(validationDataloader) for key, value in aggregatedMetrics.items()}
     return averagedMetrics
 
-def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, scheduler, criterion, epochs, device, trialNumber):
+def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, warmupScheduler, mainScheduler, criterion, device, trialNumber):
     trainingLossPlot = []
     validationLossPlot = []
     validationDiceScorePlot = []
     validationIoUScorePlot = []
+    # Early stopping mechanism.
+    bestValidationLoss = float('inf')
+    patienceCounter = 0
+    maxEpochs = 0
 
-    for epoch in range(epochs):
+    while True:
         trainingMetrics = trainOneEpoch(model, trainingDataloader, optimizer, criterion, device)
         validationMetrics = validateOneEpoch(model, validationDataloader, criterion, device)
-        scheduler.step(validationMetrics['Loss'])
+        currentLR = optimizer.param_groups[0]['lr']
+        maxEpochs += 1
+        if maxEpochs < WARMUP:
+            warmupScheduler.step()
+        else:
+            mainScheduler.step(validationMetrics['Loss'])
 
         # Logging of metrics.
         trainingLossPlot.append(trainingMetrics['Loss'])
         validationLossPlot.append(validationMetrics['Loss'])
         validationDiceScorePlot.append(validationMetrics['Dice Coefficient'])
         validationIoUScorePlot.append(validationMetrics['IoU'])
-        logResults(epoch, trainingMetrics, validationMetrics)
+        logResults(maxEpochs, currentLR, trainingMetrics, validationMetrics)
+
+        # Models train indefinitely, until validation loss stops improving.
+        if validationMetrics['Loss'] < bestValidationLoss:
+            bestValidationLoss = validationMetrics['Loss']
+            patienceCounter = 0
+        else:
+            patienceCounter += 1
+        if patienceCounter >= PATIENCE:
+            print(f'Early stopping triggered after {maxEpochs} epochs.')
+            break
     
     # Plot training metrics after training ends, to decrease computational overhead.
     validationDiceScorePlot = [value.cpu().item() for value in validationDiceScorePlot]
@@ -70,4 +90,4 @@ def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, sch
 
     trainingMetrics = {key: value.cpu().item() if isinstance(value, Tensor) else value for key, value in trainingMetrics.items()}
     validationMetrics = {key: value.cpu().item() if isinstance(value, Tensor) else value for key, value in validationMetrics.items()}
-    return trainingMetrics, validationMetrics, PNGPath
+    return trainingMetrics, validationMetrics, PNGPath, maxEpochs
