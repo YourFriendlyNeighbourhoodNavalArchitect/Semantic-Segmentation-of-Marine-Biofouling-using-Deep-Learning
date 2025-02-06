@@ -6,7 +6,7 @@ from PIL import Image
 from matplotlib.lines import Line2D
 from onnxruntime import InferenceSession
 from trainingInitialization import setupDevice
-from configurationFile import CLASS_DICTIONARY, MODEL_PATH, TESTING_PATH
+from configurationFile import CLASS_DICTIONARY, TESTING_PATH, MODEL_PATH
 
 class ModelTester:
     def __init__(self, modelPath, rootPath, device):
