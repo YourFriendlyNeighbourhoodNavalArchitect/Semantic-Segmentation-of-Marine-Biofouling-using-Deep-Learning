@@ -9,8 +9,8 @@ class DatasetVisualizer:
         self.rootPath = rootPath
         self.dataset = self.loadDataset()
         self.currentIndex = 0
-        self.figure, self.axes = subplots(1, 2, figsize = (10, 5))
-        self.figure.subplots_adjust(left = 0.01, right = 0.99, top = 0.95, bottom = 0.01, wspace = 0.025)
+        self.figure, self.axes = subplots(1, 2)
+        self.figure.subplots_adjust(left = 0.025, right = 0.975, top = 0.95, bottom = 0.025, wspace = 0.025)
         self.classColors = CLASS_DICTIONARY
         self.updatePlot()
         self.figure.canvas.mpl_connect('key_press_event', self.onKeyPress)
