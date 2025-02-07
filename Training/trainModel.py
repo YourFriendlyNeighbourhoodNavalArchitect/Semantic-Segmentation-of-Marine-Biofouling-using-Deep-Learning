@@ -1,4 +1,6 @@
-import optuna
+from optuna import create_study
+from optuna.samplers import GridSampler
+from numpy import linspace
 from trainingInitialization import getDataloaders, getOptimizer, initializeModel, setupDevice, initializeLossFunction, setSeed
 from trainingPreparation import trainingLoop
 from trainingFinalization import saveONNX, saveResults, deleteResiduals
@@ -10,33 +12,29 @@ def trainModel(modelSavePath, trainingPlotSavePath, modelFlag, device, numClasse
     # List to keep track of all the saved files for each trial.
     savedFiles = []
     # Initiate hyperparameter optimization with respect to validation loss.
-    study = optuna.create_study(direction = 'minimize')
+    # Common learning rate range found in the relevant literature.
+    learningRateGrid = linspace(5e-5, 5e-4, num = numTrials).tolist()
+    searchSpace = {'learningRate': learningRateGrid}
+    study = create_study(direction = 'minimize', sampler = GridSampler(searchSpace, seed = SEED))
 
-    for _ in range(numTrials):
-        trial = study.ask()
-        trialNumber = trial.number
-        # Common learning rate range found in the relevant literature.
-        learningRate = trial.suggest_float('learningRate', 5e-5, 5e-4)
-
+    def objective(trial):
+        learningRate = trial.suggest_categorical('learningRate', learningRateGrid)
         criterion = initializeLossFunction()
         model = initializeModel(modelFlag = modelFlag, inChannels = 3, numClasses = numClasses, device = device)
         optimizer, warmupScheduler, mainScheduler = getOptimizer(model.parameters(), learningRate)
-
         trainingDataloader, validationDataloader = getDataloaders()
-        trainingMetrics, validationMetrics, PNGPath, maxEpochs = trainingLoop(model, trainingDataloader, validationDataloader, optimizer, 
-                                                                              warmupScheduler, mainScheduler, criterion, device, trialNumber)
+        trainingMetrics, validationMetrics, PNGPath, maxEpochs = trainingLoop(model, trainingDataloader, validationDataloader, optimizer,
+                                                                              warmupScheduler, mainScheduler, criterion, device, trial.number)
         inputShape = (1, 3, *RESOLUTION)
-
-        # Report the results of the trial and save valuable results.
-        ONNXPath = saveONNX(model, device, inputShape, modelSavePath, trialNumber)
-        JSONPath = saveResults(trial, maxEpochs, trainingMetrics, validationMetrics, modelSavePath)
+        # Save valuable trial results separately.
+        ONNXPath = saveONNX(model, device, inputShape, MODEL_PATH, trial.number)
+        JSONPath = saveResults(trial, maxEpochs, trainingMetrics, validationMetrics, MODEL_PATH)
         savedFiles.append((ONNXPath, JSONPath, PNGPath))
-        validationLoss = validationMetrics['Loss']
-        study.tell(trial, validationLoss)
+        return validationMetrics['Loss']
 
     # Obtain optimal trial.
+    study.optimize(objective, n_trials = numTrials)
     bestTrial = study.best_trial
-    
     # Clean up non-optimal saved files.
     deleteResiduals(savedFiles, bestTrial.number, modelSavePath, trainingPlotSavePath, modelFlag)
 
@@ -44,5 +42,5 @@ if __name__ == '__main__':
     # Multiprocessing guard.
     modelFlag = True
     device = setupDevice()
-    numTrials = 50
+    numTrials = 25
     trainModel(MODEL_PATH, VISUALIZATIONS_PATH, modelFlag, device, NUM_CLASSES, numTrials)

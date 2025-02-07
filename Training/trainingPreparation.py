@@ -1,6 +1,7 @@
 from tqdm import tqdm
-from torch import no_grad, Tensor
+from torch import no_grad
 from trainingVisualization import logResults, plotMetrics
+from trainingFinalization import saveTrialData
 from computeMetrics import computeMetrics
 from configurationFile import WARMUP, PATIENCE
 
@@ -71,7 +72,8 @@ def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, war
         validationLossPlot.append(validationMetrics['Loss'])
         validationDiceScorePlot.append(validationMetrics['Dice Coefficient'])
         validationIoUScorePlot.append(validationMetrics['IoU'])
-        logResults(maxEpochs, currentLR, trainingMetrics, validationMetrics)
+        logResults(maxEpochs, currentLR, trainingMetrics, validationMetrics, trialNumber)
+        saveTrialData(maxEpochs, currentLR, trainingMetrics, validationMetrics, trialNumber)
 
         # Models train indefinitely, until validation loss stops improving.
         if validationMetrics['Loss'] < bestValidationLoss:
@@ -84,10 +86,5 @@ def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, war
             break
     
     # Plot training metrics after training ends, to decrease computational overhead.
-    validationDiceScorePlot = [value.cpu().item() for value in validationDiceScorePlot]
-    validationIoUScorePlot = [value.cpu().item() for value in validationIoUScorePlot]
     PNGPath = plotMetrics(trainingLossPlot, validationLossPlot, validationDiceScorePlot, validationIoUScorePlot, trialNumber)
-
-    trainingMetrics = {key: value.cpu().item() if isinstance(value, Tensor) else value for key, value in trainingMetrics.items()}
-    validationMetrics = {key: value.cpu().item() if isinstance(value, Tensor) else value for key, value in validationMetrics.items()}
     return trainingMetrics, validationMetrics, PNGPath, maxEpochs

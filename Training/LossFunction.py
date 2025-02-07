@@ -3,6 +3,7 @@ from torch.nn.functional import softmax, one_hot
 from configurationFile import NUM_CLASSES
 
 class LossFunction(Module):
+    # Composite loss function suggested in the relevant literature [https://doi.org/10.1080/08927014.2023.2185143].
     def __init__(self, alpha = 0.5):
         super().__init__()
         self.alpha = alpha
