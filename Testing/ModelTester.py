@@ -49,7 +49,7 @@ class ModelTester:
     def prepareImage(self, imagePath):
         image = Image.open(imagePath).convert('RGB')
         transform = Resize(RESOLUTION[0], RESOLUTION[1])
-        result = transform(image =  np.array(image))
+        result = transform(image = np.array(image, dtype = np.uint8))
         resizedImage = result['image']
         imageInput = np.array(resizedImage, dtype = np.float32) / 255.0
         return resizedImage, np.expand_dims(imageInput.transpose(2, 0, 1), axis = 0)
