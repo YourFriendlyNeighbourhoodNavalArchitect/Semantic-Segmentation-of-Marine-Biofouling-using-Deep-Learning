@@ -1,4 +1,5 @@
 import numpy as np
+from albumentations.augmentations.geometric.resize import Resize
 from matplotlib.pyplot import subplots, draw, show
 from os.path import join
 from os import listdir
@@ -6,7 +7,7 @@ from PIL import Image
 from matplotlib.lines import Line2D
 from onnxruntime import InferenceSession
 from trainingInitialization import setupDevice
-from configurationFile import CLASS_DICTIONARY, TESTING_PATH, MODEL_PATH
+from configurationFile import CLASS_DICTIONARY, RESOLUTION, TESTING_PATH, MODEL_PATH
 
 class ModelTester:
     def __init__(self, modelPath, rootPath, device):
@@ -47,8 +48,11 @@ class ModelTester:
 
     def prepareImage(self, imagePath):
         image = Image.open(imagePath).convert('RGB')
-        imageArray = np.array(image, dtype = np.float32) / 255.0
-        return image, np.expand_dims(imageArray.transpose(2, 0, 1), axis = 0)
+        transform = Resize(RESOLUTION[0], RESOLUTION[1])
+        result = transform(image =  np.array(image))
+        resizedImage = result['image']
+        imageInput = np.array(resizedImage, dtype = np.float32) / 255.0
+        return resizedImage, np.expand_dims(imageInput.transpose(2, 0, 1), axis = 0)
 
     def calculateClassCoverage(self, mask):
         # Calculate the percentage coverage of each class in the mask.
