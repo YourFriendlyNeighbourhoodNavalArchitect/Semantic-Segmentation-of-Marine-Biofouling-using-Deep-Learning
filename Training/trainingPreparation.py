@@ -72,7 +72,7 @@ def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, war
         validationLossPlot.append(validationMetrics['Loss'])
         validationDiceScorePlot.append(validationMetrics['Dice Coefficient'])
         validationIoUScorePlot.append(validationMetrics['IoU'])
-        logResults(maxEpochs, currentLR, trainingMetrics, validationMetrics, trialNumber)
+        logResults(maxEpochs, currentLR, trainingMetrics, validationMetrics)
         saveTrialData(maxEpochs, currentLR, trainingMetrics, validationMetrics, trialNumber)
 
         # Models train indefinitely, until validation loss stops improving.
