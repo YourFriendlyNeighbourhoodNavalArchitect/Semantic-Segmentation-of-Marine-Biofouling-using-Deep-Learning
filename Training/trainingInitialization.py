@@ -15,6 +15,7 @@ from initializeWeights import initializeWeights
 from configurationFile import BATCH_SIZE, WARMUP, TRAINING_PATH, VALIDATION_PATH
 
 def getDataloaders():
+    # Only the training subset is to be augmented.
     trainingDataset = MyDataset(TRAINING_PATH, augmentationFlag = True)
     validationDataset = MyDataset(VALIDATION_PATH, augmentationFlag = False)
     trainingDataloader = DataLoader(dataset = trainingDataset, batch_size = BATCH_SIZE, shuffle = True, pin_memory = True, num_workers = 8)
@@ -26,7 +27,7 @@ def getOptimizer(parameters, learningRate):
     # Weight decay requires careful tuning when implemented alongside batch normalization [https://tinyurl.com/3kzm37tz].
     # For the purposes of this dissertation, we revert to the traditional Adam optimizer, without weight decay.
     optimizer = optim.Adam(parameters, lr = learningRate)
-    # Learning rate decay routine.
+    # Learning rate decay routines.
     warmupScheduler = LambdaLR(optimizer, lr_lambda = lambda epoch: (epoch + 1) / WARMUP if epoch < WARMUP else 1.0)
     mainScheduler = ReduceLROnPlateau(optimizer, mode = 'min', factor = 0.5, min_lr = 1e-6)
     return optimizer, warmupScheduler, mainScheduler

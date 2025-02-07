@@ -28,6 +28,6 @@ def computeMetrics(prediction, groundTruth):
     IoU /= NUM_CLASSES
     precision /= NUM_CLASSES
     recall /= NUM_CLASSES
-
-    metrics = {'Dice Coefficient': diceScore, 'IoU': IoU, 'Accuracy': accuracy, 'Precision': precision, 'Recall': recall}
-    return metrics
+    # Return floating point values to facilitate further manipulation.
+    return {'Dice Coefficient': diceScore.item(), 'IoU': IoU.item(), 'Accuracy': accuracy.item(), 
+            'Precision': precision.item(), 'Recall': recall.item()}

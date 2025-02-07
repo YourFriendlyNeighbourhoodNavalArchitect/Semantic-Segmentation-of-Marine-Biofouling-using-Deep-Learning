@@ -1,8 +1,28 @@
-from os.path import join
+from os.path import join, exists
 from os import rename, remove
 from torch import randn
 from torch.onnx import export
-from json import dump
+from json import dump, load
+from configurationFile import MODEL_PATH
+
+def saveTrialData(epoch, currentLR, trainingMetrics, validationMetrics, trialNumber):
+    # Store all trial data in a JSON file to facilitate subsequent manipulations.
+    logPath = join(MODEL_PATH, 'trialLog.json')
+    if exists(logPath):
+        with open(logPath, 'r') as file:
+            studyData = load(file)
+    else:
+        studyData = {}
+    
+    logEntry = {'learningRate': round(currentLR, 6), 'trainingMetrics': {key: round(value, 4) for key, value in trainingMetrics.items()},
+                'validationMetrics': {key: round(value, 4) for key, value in validationMetrics.items()}}    
+    trialKey = f'Trial {trialNumber}'
+    epochKey = f'Epoch {epoch}'
+    if trialKey not in studyData:
+        studyData[trialKey] = {}
+    studyData[trialKey][epochKey] = logEntry
+    with open(logPath, 'w') as file:
+        dump(studyData, file, indent = 4)
 
 def saveONNX(model, device, inputShape, savePath, trialNumber):
     # ONNX offers framework interoperability and shared optimization [https://en.wikipedia.org/wiki/Open_Neural_Network_Exchange].
