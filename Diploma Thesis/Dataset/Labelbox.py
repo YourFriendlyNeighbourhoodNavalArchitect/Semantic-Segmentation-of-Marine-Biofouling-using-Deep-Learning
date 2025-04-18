@@ -3,7 +3,7 @@ from json import loads, dump
 from requests import Session
 from os.path import splitext
 from PIL import Image
-from configurationFile import CLASS_DICTIONARY, ALL_PATH, API_KEY
+from configurationFile import CLASS_DICTIONARY, ALL_PATH, API_KEY, METADATA_PATH
 
 class Labelbox:
     def __init__(self, inputFile, outputDirectory):
@@ -82,7 +82,7 @@ class Labelbox:
 
     def saveMetadata(self):
         # Save the metadata dictionary as a JSON file.
-        metadataFilePath = self.outputDirectory / 'Metadata.json'
+        metadataFilePath = METADATA_PATH
         with open(metadataFilePath, 'w') as f:
             dump(self.metadata, f, indent = 4)
         print(f'Metadata saved to {metadataFilePath}.')
