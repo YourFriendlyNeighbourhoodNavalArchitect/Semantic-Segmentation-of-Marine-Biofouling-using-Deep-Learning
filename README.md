@@ -31,7 +31,7 @@ This project has evolved over time. Please navigate to the relevant folder based
 ### 2. Marine 2025 Version
 
 * **[Link to Folder](./Marine-2025/)**
-* **Description:** This folder contains an enhanced and refined version of the project, building upon the foundational work of the Diploma thesis, potentially for ongoing research or a future publication targetted around 2025.
+* **Description:** This folder contains an enhanced and refined version of the project, building upon the foundational work of the Diploma thesis, as part of Marine 2025 Conference publication titled "A Novel Application of Attention U-Net for Marine Biofouling Classification and Segmentation".
 * **Improvements over Stage 1:**
     * Refined architecture for improved accuracy.
     * Expanded dataset and elaborate data augmentation techniques.
@@ -40,7 +40,7 @@ This project has evolved over time. Please navigate to the relevant folder based
 
 ## General Information
 
-* **Citation:** If you use this work, please cite the relevant stage..
+* **Citation:** If you use this work, please cite the relevant stage.
 * **License:** This project is licensed under the **MIT License**. See the LICENSE file for details.
 * **Contact:**
     * Ioannis Karlatiras: `giannhskarlathras@gmail.com`
