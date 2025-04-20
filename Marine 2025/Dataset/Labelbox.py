@@ -35,13 +35,6 @@ class Labelbox:
             print(f'Error downloading mask from {URL}: {e}')
             return None
 
-    def extractMetadata(self, classifications):
-        # Extract "Similarity" property.
-        for classification in classifications:
-            if classification.get('name') == 'Similarity':
-                return classification.get('text_answer', {}).get('content')
-        return None
-
     def processImage(self, entry):
         # Parse JSON file based on its structure.
         dataRow = entry.get('data_row', {})
@@ -51,10 +44,7 @@ class Labelbox:
         projectData = list(projects.values())[0]
         labels = projectData.get('labels', [])
         annotations = labels[0].get('annotations', {}).get('objects', [])
-        classifications = labels[0].get('annotations', {}).get('classifications', [])
 
-        # Extract metadata.
-        similarity = self.extractMetadata(classifications)
         # Initialize mask with appropriate dimensions.
         dummyURL = annotations[0].get('mask', {}).get('url')
         dummy = self.downloadMask(dummyURL)
@@ -77,7 +67,7 @@ class Labelbox:
             fullMask[classMask > 0] = classIndex
             uniqueClasses.add(classIndex)
         
-        self.metadata[ID] = {'uniqueClassIndices': list(uniqueClasses), 'similarity': similarity}
+        self.metadata[ID] = {'uniqueClassIndices': list(uniqueClasses)}
         return ID, fullMask
 
     def saveMetadata(self):
