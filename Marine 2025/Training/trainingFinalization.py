@@ -46,7 +46,7 @@ def saveResults(trial, maxEpochs, trainingMetrics, validationMetrics, savePath):
     print(f'Results for trial {trial.number} saved at {path}.')
     return path
 
-def deleteResiduals(savedFiles, bestTrialNumber, modelSavePath, trainingPlotSavePath, modelFlag):
+def deleteResiduals(savedFiles, bestTrialNumber, modelSavePath, trainingPlotSavePath):
     bestModelFile = modelSavePath / f'modelTrial{bestTrialNumber}.onnx'
     bestResultsFile = modelSavePath / f'resultsTrial{bestTrialNumber}.json'
     bestPlotFile = trainingPlotSavePath / f'trainingPlot{bestTrialNumber}.png'
@@ -59,11 +59,6 @@ def deleteResiduals(savedFiles, bestTrialNumber, modelSavePath, trainingPlotSave
         if PNGFile != bestPlotFile:
             remove(PNGFile)
     
-    if modelFlag:
-        rename(bestModelFile, modelSavePath / 'bestModel.onnx')
-        rename(bestResultsFile, modelSavePath, 'bestResults.json')
-        rename(bestPlotFile, trainingPlotSavePath / 'bestTrainingPlot.png')
-    else:
-        rename(bestModelFile, modelSavePath / 'simpleBestModel.onnx')
-        rename(bestResultsFile, modelSavePath / 'simpleBestResults.json')
-        rename(bestPlotFile, trainingPlotSavePath / 'simpleBestTrainingPlot.png')
+    rename(bestModelFile, modelSavePath / 'bestModel.onnx')
+    rename(bestResultsFile, modelSavePath, 'bestResults.json')
+    rename(bestPlotFile, trainingPlotSavePath / 'bestTrainingPlot.png')
