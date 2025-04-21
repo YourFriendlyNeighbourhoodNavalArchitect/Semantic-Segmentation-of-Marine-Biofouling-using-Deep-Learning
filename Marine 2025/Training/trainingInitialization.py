@@ -28,7 +28,7 @@ def getOptimizer(parameters, learningRate):
     optimizer = optim.Adam(parameters, lr = learningRate)
     # Learning rate decay routines.
     warmupScheduler = LambdaLR(optimizer, lr_lambda = lambda epoch: (epoch + 1) / WARMUP if epoch < WARMUP else 1.0)
-    mainScheduler = ReduceLROnPlateau(optimizer, mode = 'min', factor = 0.5, min_lr = 1e-6)
+    mainScheduler = ReduceLROnPlateau(optimizer, mode = 'min', factor = 0.9, min_lr = 1e-6)
     return optimizer, warmupScheduler, mainScheduler
 
 def initializeModel(inChannels, numClasses, device):

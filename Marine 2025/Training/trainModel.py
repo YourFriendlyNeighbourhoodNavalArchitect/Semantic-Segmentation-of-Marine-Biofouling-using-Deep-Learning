@@ -4,9 +4,9 @@ from numpy import linspace
 from trainingInitialization import getDataloaders, getOptimizer, initializeModel, setupDevice, initializeLossFunction, setSeed
 from trainingPreparation import trainingLoop
 from trainingFinalization import saveONNX, saveResults, deleteResiduals
-from configurationFile import SEED, RESOLUTION, NUM_CLASSES, MODEL_PATH, VISUALIZATIONS_PATH
+from configurationFile import SEED, RESOLUTION, NUM_CLASSES, MODEL_PATH
 
-def trainModel(modelSavePath, trainingPlotSavePath, modelFlag, device, numClasses, numTrials):
+def trainModel(savePath, device, numClasses, numTrials):
     # Ensure reproducibility between runs.
     setSeed(SEED)
     # List to keep track of all the saved files for each trial.
@@ -20,7 +20,7 @@ def trainModel(modelSavePath, trainingPlotSavePath, modelFlag, device, numClasse
     def objective(trial):
         learningRate = trial.suggest_categorical('learningRate', learningRateGrid)
         criterion = initializeLossFunction()
-        model = initializeModel(modelFlag = modelFlag, inChannels = 3, numClasses = numClasses, device = device)
+        model = initializeModel(inChannels = 3, numClasses = numClasses, device = device)
         optimizer, warmupScheduler, mainScheduler = getOptimizer(model.parameters(), learningRate)
         trainingDataloader, validationDataloader = getDataloaders()
         trainingMetrics, validationMetrics, PNGPath, maxEpochs = trainingLoop(model, trainingDataloader, validationDataloader, optimizer,
@@ -36,11 +36,10 @@ def trainModel(modelSavePath, trainingPlotSavePath, modelFlag, device, numClasse
     study.optimize(objective, n_trials = numTrials)
     bestTrial = study.best_trial
     # Clean up non-optimal saved files.
-    deleteResiduals(savedFiles, bestTrial.number, modelSavePath, trainingPlotSavePath, modelFlag)
+    deleteResiduals(savedFiles, bestTrial.number, savePath)
 
 if __name__ == '__main__':
     # Multiprocessing guard.
-    modelFlag = True
     device = setupDevice()
-    numTrials = 25
-    trainModel(MODEL_PATH, VISUALIZATIONS_PATH, modelFlag, device, NUM_CLASSES, numTrials)
+    numTrials = 10
+    trainModel(MODEL_PATH, device, NUM_CLASSES, numTrials)
