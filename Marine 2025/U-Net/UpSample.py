@@ -1,7 +1,7 @@
 from torch.nn import Module, Sequential, Upsample, Conv2d, BatchNorm2d, ReLU
 from torch import cat
 from BlueArrow import BlueArrow
-from AttentionGates import AttentionGates
+from SpatialAttention import SpatialAttention
 
 class UpSample(Module):
     # Building block of the expansive path of the network.
@@ -12,9 +12,9 @@ class UpSample(Module):
                                      Conv2d(inChannels, inChannels // 2, kernel_size = 3, padding = 1),
                                      BatchNorm2d(inChannels // 2),
                                      ReLU(inplace = True))
-        # Implementation of the attention mechanism. 
+        # Implementation of the spatial attention mechanism. 
         # Intermediate channels are chosen for computational efficiency and dimensionality reduction.
-        self.attentionGate = AttentionGates(decoderInput = inChannels // 2, encoderInput = inChannels // 2, 
+        self.attentionGate = SpatialAttention(decoderInput = inChannels // 2, encoderInput = inChannels // 2, 
                                             intermediateChannels = inChannels // 4)
         self.convolution = BlueArrow(inChannels, outChannels)
        
