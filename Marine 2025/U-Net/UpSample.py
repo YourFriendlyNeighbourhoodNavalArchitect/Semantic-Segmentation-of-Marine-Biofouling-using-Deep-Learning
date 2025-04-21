@@ -15,7 +15,7 @@ class UpSample(Module):
         # Implementation of the spatial attention mechanism. 
         # Intermediate channels are chosen for computational efficiency and dimensionality reduction.
         self.attentionGate = SpatialAttention(decoderInput = inChannels // 2, encoderInput = inChannels // 2, 
-                                            intermediateChannels = inChannels // 4)
+                                              intermediateChannels = inChannels // 4)
         self.convolution = BlueArrow(inChannels, outChannels)
        
     def forward(self, x1, x2):
