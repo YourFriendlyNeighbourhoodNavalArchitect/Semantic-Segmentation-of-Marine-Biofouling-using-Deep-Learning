@@ -1,4 +1,5 @@
 from torch.nn import Module, Sequential, Conv2d, BatchNorm2d, ReLU
+from ChannelAttention import ChannelAttention
 
 class BlueArrow(Module):
     # Fundamental component of the original U-Net.
@@ -13,7 +14,8 @@ class BlueArrow(Module):
                                                ReLU(inplace = True),
                                                Conv2d(outChannels, outChannels, kernel_size = 3, padding = 1),
                                                BatchNorm2d(outChannels),
-                                               ReLU(inplace = True))
+                                               ReLU(inplace = True),
+                                               ChannelAttention(outChannels))
 
     def forward(self, x):
         return self.convolutionOperation(x)
