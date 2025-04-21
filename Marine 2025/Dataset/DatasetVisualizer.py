@@ -2,7 +2,7 @@ import numpy as np
 from MyDataset import MyDataset
 from matplotlib.pyplot import subplots, draw, show
 from matplotlib.lines import Line2D
-from configurationFile import CLASS_DICTIONARY, TRAINING_PATH, VALIDATION_PATH
+from configurationFile import CLASS_DICTIONARY, TRAINING_PATH
 
 class DatasetVisualizer:
     def __init__(self, rootPath):
@@ -77,10 +77,9 @@ class DatasetVisualizer:
     def updatePlot(self):
         # Utilizing Pyplot, print image and mask side by side.
         image, mask = self.dataset[self.currentIndex]
-        image = image.permute(1, 2, 0).numpy()
         RGBMask = self.classIndicesToRGB(mask)
         
-        self.axes[0].imshow(image, animated = True)
+        self.axes[0].imshow(image.permute(1, 2, 0).numpy(), animated = True)
         self.axes[0].set_title('Image')
         self.axes[0].axis('off')
         self.axes[1].imshow(RGBMask, animated = True)
