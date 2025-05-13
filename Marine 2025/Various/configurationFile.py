@@ -17,9 +17,9 @@ CLASS_DICTIONARY = {'Clean Hull': {'index': 0, 'color': [0, 255, 0]},
 SEED = 4
 RESOLUTION = (512, 512)
 NUM_CLASSES = len(CLASS_DICTIONARY)
-SPLIT_RATIOS = (0.7, 0.15, 0.15)
+SPLIT_RATIOS = (0.8, 0.1, 0.1)
 BATCH_SIZE = 16
-WARMUP = 20
+WARMUP = 10
 PATIENCE = 50
 
 # Paths for the project.
