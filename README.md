@@ -35,7 +35,7 @@ This project has evolved over time. Please navigate to the relevant folder based
 * **Improvements over Stage 1:**
     * Refined architecture for improved accuracy.
     * Expanded dataset and elaborate data augmentation techniques.
-
+    * Advanced hyperparameter tuning algorithm.
 ---
 
 ## General Information
@@ -44,4 +44,3 @@ This project has evolved over time. Please navigate to the relevant folder based
 * **License:** This project is licensed under the **MIT License**. See the LICENSE file for details.
 * **Contact:**
     * Ioannis Karlatiras: `giannhskarlathras@gmail.com`
-    * Orfeas Bourchas: `orfeas.bourchas@gmail.com`
