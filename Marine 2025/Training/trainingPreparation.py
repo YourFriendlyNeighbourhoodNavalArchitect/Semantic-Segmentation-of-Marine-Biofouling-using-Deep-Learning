@@ -1,5 +1,6 @@
 from tqdm import tqdm
 from torch import no_grad
+from optuna.exceptions import TrialPruned
 from trainingVisualization import logResults, plotMetrics
 from trainingFinalization import saveTrialData
 from computeMetrics import computeMetrics
@@ -47,7 +48,7 @@ def validateOneEpoch(model, validationDataloader, criterion, device):
     averagedMetrics = {key: value / len(validationDataloader) for key, value in aggregatedMetrics.items()}
     return averagedMetrics
 
-def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, warmupScheduler, mainScheduler, criterion, device, trialNumber):
+def trainingLoop(model, trial, trainingDataloader, validationDataloader, optimizer, warmupScheduler, mainScheduler, criterion, device):
     trainingLossPlot = []
     validationLossPlot = []
     validationDiceScorePlot = []
@@ -73,7 +74,12 @@ def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, war
         validationDiceScorePlot.append(validationMetrics['Dice Coefficient'])
         validationIoUScorePlot.append(validationMetrics['IoU'])
         logResults(maxEpochs, currentLR, trainingMetrics, validationMetrics)
-        saveTrialData(maxEpochs, currentLR, trainingMetrics, validationMetrics, trialNumber)
+        saveTrialData(maxEpochs, currentLR, trainingMetrics, validationMetrics, trial.number)
+        
+        trial.report(validationMetrics['Loss'], maxEpochs)
+        if trial.should_prune():
+            # Get rid of unpromising trials early, to save on computational resources.
+            raise TrialPruned()
 
         # Models train indefinitely, until validation loss stops improving.
         if validationMetrics['Loss'] < bestValidationLoss:
@@ -86,5 +92,5 @@ def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, war
             break
     
     # Plot training metrics after training ends, to decrease computational overhead.
-    PNGPath = plotMetrics(trainingLossPlot, validationLossPlot, validationDiceScorePlot, validationIoUScorePlot, trialNumber)
+    PNGPath = plotMetrics(trainingLossPlot, validationLossPlot, validationDiceScorePlot, validationIoUScorePlot, trial.number)
     return trainingMetrics, validationMetrics, PNGPath, maxEpochs

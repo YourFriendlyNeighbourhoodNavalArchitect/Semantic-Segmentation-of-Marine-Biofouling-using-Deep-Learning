@@ -30,7 +30,7 @@ def saveONNX(model, device, inputShape, savePath, trialNumber):
     path = savePath / f'modelTrial{trialNumber}.onnx'
     # Constant folding improves efficiency.
     export(model, dummyInput, path, export_params = True, 
-           opset_version = 12, do_constant_folding = True,
+           opset_version = 17, do_constant_folding = True,
            input_names = ['Input'], output_names = ['Output'])
     print(f'Model for trial {trialNumber} saved in ONNX format at {path}.')
     return path
