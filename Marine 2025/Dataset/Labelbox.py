@@ -1,6 +1,8 @@
 import numpy as np
 from json import loads, dump
 from requests import Session
+from requests.exceptions import RequestException
+from time import sleep
 from os.path import splitext
 from PIL import Image
 from configurationFile import CLASS_DICTIONARY, ALL_PATH, LABELBOX_API_KEY, METADATA_PATH
@@ -12,7 +14,7 @@ class Labelbox:
         self.outputDirectory = outputDirectory
         # Reusable and secure connection for all HTTP requests.
         self.session = Session()
-        self.session.headers.update({'Authorization': f'Bearer {API_KEY}'})
+        self.session.headers.update({'Authorization': f'Bearer {LABELBOX_API_KEY}'})
         # Dictionary to store metadata for dataset stratification.
         self.metadata = {}
         self.saveMasks()
@@ -25,15 +27,27 @@ class Labelbox:
 
     def downloadMask(self, URL):
         # Individual class masks are located in respective URLs.
-        try:
-            response = self.session.get(URL, stream = True)
-            response.raise_for_status()
-            # Each class mask is a binary file.
-            mask = Image.open(response.raw).convert('L')
-            return np.array(mask)
-        except Exception as e:
-            print(f'Error downloading mask from {URL}: {e}')
-            return None
+        maxRetries = 3
+        retryDelay = 5
+        requestTimeout = 30
+
+        for attempt in range(maxRetries):
+            try:
+                response = self.session.get(URL, stream = True, timeout = requestTimeout)
+                response.raise_for_status()
+                # Each class mask is a binary file.
+                mask = Image.open(response.raw).convert('L')
+                return np.array(mask)
+            except RequestException as e:
+                print(f'Error downloading mask from {URL} (attempt {attempt + 1}/{maxRetries}): {e}')
+                if attempt < maxRetries - 1:
+                    sleep(retryDelay)
+                else:
+                    print(f'Failed to download mask from {URL} after {maxRetries} attempts.')
+                    return None
+            except Exception as e:
+                print(f'An unexpected error occurred while processing mask from {URL}: {e}')
+                return None
 
     def processImage(self, entry):
         # Parse JSON file based on its structure.
