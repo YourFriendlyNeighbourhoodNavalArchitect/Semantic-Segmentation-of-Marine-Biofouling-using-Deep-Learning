@@ -17,7 +17,7 @@ def trainModel(savePath, device, numClasses, numTrials):
                          pruner = MedianPruner(n_startup_trials = 5, n_warmup_steps = 20))
 
     def objective(trial):
-        learningRate = trial.suggest_float('learningRate', 1e-5, 1e-2, log = True)
+        learningRate = trial.suggest_float('learningRate', 1e-5, 1e-3, log = True)
         criterion = initializeLossFunction()
         model = initializeModel(inChannels = 3, numClasses = numClasses, device = device)
         optimizer, warmupScheduler, mainScheduler = getOptimizer(model.parameters(), learningRate)
