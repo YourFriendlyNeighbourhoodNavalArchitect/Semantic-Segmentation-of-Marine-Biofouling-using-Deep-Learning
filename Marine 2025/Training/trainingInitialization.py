@@ -17,9 +17,9 @@ def getDataloaders():
     # Only the training subset is to be augmented.
     trainingDataset = MyDataset(TRAINING_PATH, augmentationFlag = True)
     validationDataset = MyDataset(VALIDATION_PATH, augmentationFlag = False)
-    trainingDataloader = DataLoader(dataset = trainingDataset, batch_size = BATCH_SIZE, shuffle = True, pin_memory = True, num_workers = 8)
+    trainingDataloader = DataLoader(dataset = trainingDataset, batch_size = BATCH_SIZE, shuffle = True, pin_memory = True, num_workers = 4)
     # Shuffling is not required during validation.
-    validationDataloader = DataLoader(dataset = validationDataset, batch_size = BATCH_SIZE, shuffle = False, pin_memory = True, num_workers = 8)
+    validationDataloader = DataLoader(dataset = validationDataset, batch_size = BATCH_SIZE, shuffle = False, pin_memory = True, num_workers = 4)
     return trainingDataloader, validationDataloader
 
 def getOptimizer(parameters, learningRate):
