@@ -20,7 +20,7 @@ NUM_CLASSES = len(CLASS_DICTIONARY)
 SPLIT_RATIOS = (0.8, 0.1, 0.1)
 BATCH_SIZE = 16
 WARMUP = 10
-PATIENCE = 50
+PATIENCE = 30
 
 # Paths for the project.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
