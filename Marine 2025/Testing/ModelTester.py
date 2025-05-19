@@ -1,6 +1,8 @@
 import numpy as np
 from MyDataset import MyDataset
-from matplotlib.pyplot import subplots, draw, show
+from computeMetrics import computeMetrics
+from torch import from_numpy
+from matplotlib.pyplot import subplots, savefig, close
 from matplotlib.lines import Line2D
 from onnxruntime import InferenceSession
 from trainingInitialization import setupDevice
@@ -11,16 +13,11 @@ class ModelTester:
         self.modelPath = modelPath
         self.rootPath = rootPath
         self.device = device
+        self.outputDirectory = MODEL_PATH / 'Predictions'
         self.dataset = self.loadDataset()
-        self.currentIndex = 0
-        self.figure, self.axes = subplots(1, 3)
-        self.figure.subplots_adjust(left = 0.025, right = 0.975, top = 0.95, bottom = 0.025, wspace = 0.025)
         self.classColors = CLASS_DICTIONARY
         self.session = self.createSession()
-        
-        self.updatePlot()
-        self.figure.canvas.mpl_connect('key_press_event', self.onKeyPress)
-        show()
+        self.runInference()
 
     def createSession(self):
         # Create ONNX Runtime session.
@@ -75,61 +72,58 @@ class ModelTester:
         except Exception as e:
             print(f'Error converting prediction to RGB: {e}')
             raise
-
-    def onKeyPress(self, event):
-        # Navigate through images with right and left arrow keys.
-        if event.key == 'right':
-            self.currentIndex = (self.currentIndex + 1) % len(self.testData)
-            self.updatePlot()
-        elif event.key == 'left':
-            self.currentIndex = (self.currentIndex - 1) % len(self.testData)
-            self.updatePlot()
-        else:
-            print('Invalid key pressed. Use left or right arrow keys.')
     
     def generateLegend(self, coverage):
         # Labels appear only for the classes which appear in the mask.
         filteredCoverage = {className: classCoverage for className, classCoverage in coverage.items() if classCoverage > 0}
-
         legendLabels = [f'{className}: {filteredCoverage[className]:.2f}%' for className in filteredCoverage]
         handles = [Line2D([0], [0], marker = 's', color = 'w', 
                    markerfacecolor = np.array(self.classColors[className]['color']) / 255, 
                    markersize = 6) for className in filteredCoverage]
         return legendLabels, handles
 
-    def updatePlot(self):
-        # Run the model on the testing set.
-        image, groundTruth = self.dataset[self.currentIndex]
-        imageInput = np.expand_dims(image.numpy().astype(np.float32), axis = 0)
-        output = self.session.run(None, {self.session.get_inputs()[0].name: imageInput})[0]
-        prediction = np.argmax(output, axis = 1).squeeze()
+    def plotResults(self, image, prediction, groundTruth, index):
+        # Plot the image, predicted mask, and ground truth mask.
         predictedMask = self.classIndicesToRGB(prediction)
         groundTruthMask = self.classIndicesToRGB(groundTruth)
+        figure, axes = subplots(1, 3, figsize = (24, 8))
+        figure.subplots_adjust(left = 0.025, right = 0.975, top = 0.95, bottom = 0.025, wspace = 0.025)
+        axes[0].imshow(image.permute(1, 2, 0).numpy(), animated = True)
+        axes[0].set_title('Image')
+        axes[0].axis('off')
+        axes[1].imshow(predictedMask, animated = True)
+        axes[1].set_title('Predicted Mask')
+        axes[1].axis('off')
+        axes[2].imshow(groundTruthMask, animated = True)
+        axes[2].set_title('Ground Truth')
+        axes[2].axis('off')
 
-        self.axes[0].imshow(image.permute(1, 2, 0).numpy(), animated = True)
-        self.axes[0].set_title('Image')
-        self.axes[0].axis('off')
-        self.axes[1].imshow(predictedMask, animated = True)
-        self.axes[1].set_title('Predicted Mask')
-        self.axes[1].axis('off')
-        self.axes[2].imshow(groundTruthMask, animated = True)
-        self.axes[2].set_title('Ground Truth')
-        self.axes[2].axis('off')
-
-        # Calculate and display class coverage.
         predictedCoverage = self.calculateClassCoverage(prediction)
         groundTruthCoverage = self.calculateClassCoverage(groundTruth)
         predictedLegendLabels, predictedHandles = self.generateLegend(predictedCoverage)
         groundTruthLegendLabels, groundTruthHandles = self.generateLegend(groundTruthCoverage)
-        self.axes[1].legend(handles = predictedHandles, labels = predictedLegendLabels, 
-                            loc = 'upper right', title = 'Class Coverage', 
-                            title_fontsize = 10, fontsize = 8)
-        self.axes[2].legend(handles = groundTruthHandles, labels = groundTruthLegendLabels, 
-                            loc = 'upper right', title = 'Class Coverage', 
-                            title_fontsize = 10, fontsize = 8)
+        axes[1].legend(handles = predictedHandles, labels = predictedLegendLabels, loc = 'upper right', title = 'Class Coverage', 
+                       title_fontsize = 16, fontsize = 14)
+        axes[2].legend(handles = groundTruthHandles, labels = groundTruthLegendLabels, loc = 'upper right', title = 'Class Coverage', 
+                       title_fontsize = 16, fontsize = 14)
 
-        self.figure.canvas.manager.set_window_title(f'Model Testing')
-        draw()
+        savefig(self.outputDirectory / f'Inference {index + 1}.png', dpi = 600, bbox_inches = 'tight')
+        close(figure)
+
+    def runInference(self):
+        # Run the model on the testing set.
+        aggregatedMetrics = {'Dice Coefficient': 0.0, 'IoU': 0.0, 'Accuracy': 0.0, 'Precision': 0.0, 'Recall': 0.0}
+        for i in range(len(self.dataset)):
+            image, groundTruth = self.dataset[i]
+            imageInput = np.expand_dims(image.numpy().astype(np.float32), axis = 0)
+            output = self.session.run(None, {self.session.get_inputs()[0].name: imageInput})[0]
+            prediction = np.argmax(output, axis = 1).squeeze()
+            metrics = computeMetrics(from_numpy(output), groundTruth)
+            aggregatedMetrics = {key: value + metrics[key] for key, value in aggregatedMetrics.items()}
+            self.plotResults(image, prediction, groundTruth, i)
+
+        averagedMetrics = {key: value / len(self.dataset) for key, value in aggregatedMetrics.items()}
+        print('\n'.join(f'{key}: {value:.4f}' for key, value in averagedMetrics.items()))
 
 modelPath = MODEL_PATH / 'bestModel.onnx'
 device = setupDevice()
