@@ -8,10 +8,9 @@ LABELBOX_API_KEY = getenv('LABELBOX_API_KEY')
 
 # Model performs classification amongst the classes shown below.
 CLASS_DICTIONARY = {'Clean Hull': {'index': 0, 'color': [0, 255, 0]},
-                    'Slime/Algae': {'index': 1, 'color': [255, 255, 106]},
-                    'Calcareous Deposits': {'index': 2, 'color': [255, 87, 51]},
-                    'Barnacles/Molluscs': {'index': 3, 'color': [157, 41, 177]},
-                    'Background/Other': {'index': 4, 'color': [43, 138, 255]}}
+                    'Soft Fouling': {'index': 1, 'color': [255, 255, 106]},
+                    'Hard Fouling': {'index': 2, 'color': [255, 87, 51]},
+                    'Background/Other': {'index': 3, 'color': [157, 41, 177]}}
 
 # Project configuration variables.
 SEED = 4
@@ -20,7 +19,7 @@ NUM_CLASSES = len(CLASS_DICTIONARY)
 SPLIT_RATIOS = (0.8, 0.1, 0.1)
 BATCH_SIZE = 16
 WARMUP = 10
-PATIENCE = 30
+PATIENCE = 50
 
 # Paths for the project.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
