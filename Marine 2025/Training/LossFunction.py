@@ -1,6 +1,6 @@
 from torch import argmax
 from torch.nn import Module, CrossEntropyLoss
-from torchmetrics.segmentation import GeneralizedDiceScore
+from torchmetrics.functional.segmentation import generalized_dice_score
 from configurationFile import NUM_CLASSES
 
 class LossFunction(Module):
@@ -9,11 +9,11 @@ class LossFunction(Module):
         super().__init__()
         self.alpha = alpha
         self.crossEntropyLoss = CrossEntropyLoss()
-        self.dice = GeneralizedDiceScore(num_classes = NUM_CLASSES, weight_type = 'linear', input_format = 'index')
 
     def diceLoss(self, prediction, groundTruth):
-        diceScore = self.dice(argmax(prediction, dim = 1), groundTruth)
-        return 1 - diceScore
+        prediction = argmax(prediction, dim = 1)
+        diceScore = generalized_dice_score(prediction, groundTruth, num_classes = NUM_CLASSES, weight_type = 'linear', input_format = 'index')
+        return 1 - diceScore.mean()
 
     def forward(self, prediction, groundTruth):
         crossEntropyLoss = self.crossEntropyLoss(prediction, groundTruth)
