@@ -2,7 +2,7 @@ import numpy as np
 from MyDataset import MyDataset
 from matplotlib.pyplot import subplots, draw, show
 from matplotlib.lines import Line2D
-from configurationFile import CLASS_DICTIONARY, TRAINING_PATH
+from configurationFile import CLASS_DICTIONARY, ALL_PATH
 
 class DatasetVisualizer:
     def __init__(self, rootPath):
@@ -96,4 +96,4 @@ class DatasetVisualizer:
         self.figure.canvas.manager.set_window_title(f'Dataset Visualizer')
         draw()
 
-DatasetVisualizer(TRAINING_PATH)
+DatasetVisualizer(ALL_PATH)
