@@ -1,33 +1,24 @@
-from torch import argmax, logical_and
+from torch import argmax
+from torchmetrics.segmentation import GeneralizedDiceScore, MeanIoU
+from torchmetrics.classification import MulticlassAccuracy, MulticlassPrecision, MulticlassRecall
 from configurationFile import NUM_CLASSES
 
 def computeMetrics(prediction, groundTruth):
-    # Metrics are calculated by evaluating the entire batch at once.
+    # Convert logits to predictions.
     prediction = argmax(prediction, dim = 1)
-    diceScore = 0.0
-    IoU = 0.0
-    precision = 0.0
-    recall = 0.0
-    accuracy = (prediction == groundTruth).float().mean()
-
-    # Compute per-class metrics for the entire batch.
-    for index in range(NUM_CLASSES):
-        predictionMask = (prediction == index)
-        groundTruthMask = (groundTruth == index)
-        TP = logical_and(predictionMask, groundTruthMask).sum().float()
-        FP = logical_and(predictionMask, ~groundTruthMask).sum().float()
-        FN = logical_and(~predictionMask, groundTruthMask).sum().float()
-
-        diceScore += (2 * TP) / (2 * TP + FP + FN + 1e-6)
-        IoU += TP / (TP + FP + FN + 1e-6)
-        precision += TP / (TP + FP + 1e-6)
-        recall += TP / (TP + FN + 1e-6)
-
-    # Average class-wise metrics.
-    diceScore /= NUM_CLASSES
-    IoU /= NUM_CLASSES
-    precision /= NUM_CLASSES
-    recall /= NUM_CLASSES
-    # Return floating point values to facilitate further manipulation.
-    return {'Dice Coefficient': diceScore.item(), 'IoU': IoU.item(), 'Accuracy': accuracy.item(), 
-            'Precision': precision.item(), 'Recall': recall.item()}
+    
+    # Initialize and compute metrics.
+    dice = GeneralizedDiceScore(num_classes = NUM_CLASSES, weight_type = 'linear', input_format = 'index')
+    IoU = MeanIoU(num_classes = NUM_CLASSES, input_format = 'index')
+    accuracy = MulticlassAccuracy(num_classes = NUM_CLASSES, average = 'micro')
+    precision = MulticlassPrecision(num_classes = NUM_CLASSES, average = 'macro')
+    recall = MulticlassRecall(num_classes = NUM_CLASSES, average = 'macro')
+    
+    diceScore = dice(prediction, groundTruth)
+    IoUScore = IoU(prediction, groundTruth)
+    accuracyScore = accuracy(prediction, groundTruth)
+    precisionScore = precision(prediction, groundTruth)
+    recallScore = recall(prediction, groundTruth)
+    
+    return {'Dice Coefficient': diceScore.item(), 'IoU': IoUScore.item(), 'Accuracy': accuracyScore.item(),
+            'Precision': precisionScore.item(), 'Recall': recallScore.item()}
