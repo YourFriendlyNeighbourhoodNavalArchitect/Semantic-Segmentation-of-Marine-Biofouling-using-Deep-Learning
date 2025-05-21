@@ -14,7 +14,7 @@ def trainModel(savePath, device, numClasses, numTrials):
     # Initiate hyperparameter optimization with respect to validation loss.
     # Use Tree-structured Parzen Estimator (TPE) to exploe hyperparameter space.
     study = create_study(direction = 'minimize', sampler = TPESampler(seed = SEED), 
-                         pruner = MedianPruner(n_startup_trials = 5, n_warmup_steps = 20))
+                         pruner = MedianPruner(n_startup_trials = 10, n_warmup_steps = 30))
 
     def objective(trial):
         learningRate = trial.suggest_float('learningRate', 1e-5, 1e-3, log = True)
@@ -40,5 +40,5 @@ def trainModel(savePath, device, numClasses, numTrials):
 if __name__ == '__main__':
     # Multiprocessing guard.
     device = setupDevice()
-    numTrials = 20
+    numTrials = 50
     trainModel(MODEL_PATH, device, NUM_CLASSES, numTrials)
