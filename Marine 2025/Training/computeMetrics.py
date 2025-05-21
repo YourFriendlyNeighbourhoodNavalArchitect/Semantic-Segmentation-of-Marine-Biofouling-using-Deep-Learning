@@ -9,7 +9,7 @@ def computeMetrics(prediction, groundTruth):
     
     diceScore = generalized_dice_score(prediction, groundTruth, num_classes = NUM_CLASSES, weight_type = 'linear', input_format = 'index')
     IoUScore = mean_iou(prediction, groundTruth, num_classes = NUM_CLASSES, input_format = 'index')
-    accuracyScore = multiclass_accuracy(prediction, groundTruth, num_classes = NUM_CLASSES, average = 'micro')
+    accuracyScore = multiclass_accuracy(prediction, groundTruth, num_classes = NUM_CLASSES, average = 'macro')
     precisionScore = multiclass_precision(prediction, groundTruth, num_classes = NUM_CLASSES, average = 'macro')
     recallScore = multiclass_recall(prediction, groundTruth, num_classes = NUM_CLASSES, average = 'macro')
     
