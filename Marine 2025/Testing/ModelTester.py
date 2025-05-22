@@ -117,10 +117,9 @@ class ModelTester:
             image, groundTruth = self.dataset[i]
             imageInput = np.expand_dims(image.numpy().astype(np.float32), axis = 0)
             output = self.session.run(None, {self.session.get_inputs()[0].name: imageInput})[0]
-            prediction = np.argmax(output, axis = 1).squeeze()
-            metrics = computeMetrics(from_numpy(output), groundTruth)
+            metrics = computeMetrics(from_numpy(output), groundTruth.unsqueeze(axis = 0))
             aggregatedMetrics = {key: value + metrics[key] for key, value in aggregatedMetrics.items()}
-            self.plotResults(image, prediction, groundTruth, i)
+            self.plotResults(image, np.argmax(output, axis = 1).squeeze(), groundTruth, i)
 
         averagedMetrics = {key: value / len(self.dataset) for key, value in aggregatedMetrics.items()}
         print('\n'.join(f'{key}: {value:.4f}' for key, value in averagedMetrics.items()))
