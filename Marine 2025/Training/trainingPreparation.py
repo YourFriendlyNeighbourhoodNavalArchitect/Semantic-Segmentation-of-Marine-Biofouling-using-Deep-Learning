@@ -8,7 +8,7 @@ from configurationFile import WARMUP, PATIENCE
 
 def trainOneEpoch(model, trainingDataloader, optimizer, criterion, device):
     model.train()
-    aggregatedMetrics = {'Loss': 0, 'Dice Coefficient': 0, 'IoU': 0, 'Accuracy': 0, 'Precision': 0, 'Recall': 0}
+    aggregatedMetrics = {'Loss': 0, 'Dice Coefficient': 0, 'IoU': 0, 'Accuracy': 0, 'Precision': 0}
 
     for data in tqdm(trainingDataloader, desc = 'Training'):
         # Send data to GPU.
@@ -32,7 +32,7 @@ def trainOneEpoch(model, trainingDataloader, optimizer, criterion, device):
 
 def validateOneEpoch(model, validationDataloader, criterion, device):
     model.eval()
-    aggregatedMetrics = {'Loss': 0, 'Dice Coefficient': 0, 'IoU': 0, 'Accuracy': 0, 'Precision': 0, 'Recall': 0}
+    aggregatedMetrics = {'Loss': 0, 'Dice Coefficient': 0, 'IoU': 0, 'Accuracy': 0, 'Precision': 0}
 
     with no_grad():
         for data in tqdm(validationDataloader, desc = 'Validation'):
