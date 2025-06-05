@@ -18,7 +18,7 @@ This project has evolved over time. Please navigate to the relevant folder based
 
 ### 1. Diploma Thesis Version
 
-* **[Link to Folder](./Diploma Thesis/)**
+* **[Link to Folder](./Diploma-Thesis/)**
 * **Description:** This folder contains the initial implementation developed as part of the MSc Diploma thesis titled "Semantic Segmentation of Marine Biofouling Images with Attention U-Net".
 * **Core Features:**
     * Implementation of the Attention U-Net architecture.
@@ -30,7 +30,7 @@ This project has evolved over time. Please navigate to the relevant folder based
 
 ### 2. Marine 2025 Version
 
-* **[Link to Folder](./Marine 2025/)**
+* **[Link to Folder](./Marine-2025/)**
 * **Description:** This folder contains an enhanced and refined version of the project, building upon the foundational work of the Diploma thesis, as part of Marine 2025 Conference publication titled "A Novel Application of Attention U-Net for Marine Biofouling Classification and Segmentation".
 * **Improvements over Stage 1:**
     * Refined architecture for improved accuracy.
