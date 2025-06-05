@@ -1,6 +1,6 @@
 # Semantic Segmentation of Marine Biofouling using Deep Learning
 
-This repository contains the work related to the semantic segmentation of marine biofouling images using deep learning, specifically focusing on Attention U-Net architectures. The project progressed through two main stages, each available in its respective folder.
+This repository contains the work related to the semantic segmentation of marine biofouling images using deep learning, specifically focusing on the Attention U-Net architecture. The project progressed through two main stages, each available in its respective folder.
 
 ## Project Overview
 
@@ -34,8 +34,8 @@ This project has evolved over time. Please navigate to the relevant folder based
 * **Description:** This folder contains an enhanced and refined version of the project, building upon the foundational work of the Diploma thesis, as part of Marine 2025 Conference publication titled "A Novel Application of Attention U-Net for Marine Biofouling Classification and Segmentation".
 * **Improvements over Stage 1:**
     * Refined architecture for improved accuracy.
-    * Expanded dataset and elaborate data augmentation techniques.
-    * Advanced hyperparameter tuning algorithm.
+    * Expanded dataset and a more efficient data augmentation technique.
+    * Improved hyperparameter tuning algorithm, combined with trial pruning.
 ---
 
 ## General Information
