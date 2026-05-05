@@ -1,7 +1,7 @@
 from torch import argmax
 from torch.nn import Module, CrossEntropyLoss
 from torchmetrics.functional.segmentation import generalized_dice_score
-from configurationFile import NUM_CLASSES
+from Various.configurationFile import NUM_CLASSES
 
 class LossFunction(Module):
     # Composite loss function suggested in the relevant literature [https://doi.org/10.1080/08927014.2023.2185143].

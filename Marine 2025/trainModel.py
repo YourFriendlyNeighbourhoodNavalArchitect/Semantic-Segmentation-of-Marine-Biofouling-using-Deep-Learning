@@ -1,10 +1,19 @@
 from optuna import create_study
-from optuna.samplers import TPESampler
 from optuna.pruners import MedianPruner
-from trainingInitialization import getDataloaders, getOptimizer, initializeModel, setupDevice, initializeLossFunction, setSeed
-from trainingPreparation import trainingLoop
-from trainingFinalization import saveONNX, saveResults, deleteResiduals
-from configurationFile import SEED, RESOLUTION, NUM_CLASSES, MODEL_PATH
+from optuna.samplers import TPESampler
+
+from Training.trainingFinalization import deleteResiduals, saveONNX, saveResults
+from Training.trainingInitialization import (
+    getDataloaders,
+    getOptimizer,
+    initializeLossFunction,
+    initializeModel,
+    setSeed,
+    setupDevice,
+)
+from Training.trainingPreparation import trainingLoop
+from Various.configurationFile import MODEL_PATH, NUM_CLASSES, RESOLUTION, SEED
+
 
 def trainModel(savePath, device, numClasses, numTrials):
     # Ensure reproducibility between runs.
@@ -40,5 +49,5 @@ def trainModel(savePath, device, numClasses, numTrials):
 if __name__ == '__main__':
     # Multiprocessing guard.
     device = setupDevice()
-    numTrials = 50
+    numTrials = 1
     trainModel(MODEL_PATH, device, NUM_CLASSES, numTrials)

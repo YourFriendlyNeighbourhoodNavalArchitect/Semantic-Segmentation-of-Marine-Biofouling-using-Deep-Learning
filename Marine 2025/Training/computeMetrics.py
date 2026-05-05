@@ -1,7 +1,7 @@
 from torch import argmax
 from torchmetrics.functional.segmentation import generalized_dice_score, mean_iou
 from torchmetrics.functional.classification import multiclass_accuracy, multiclass_precision
-from configurationFile import NUM_CLASSES
+from Various.configurationFile import NUM_CLASSES
 
 def computeMetrics(prediction, groundTruth):
     # Convert logits to predictions.

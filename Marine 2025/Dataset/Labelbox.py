@@ -5,7 +5,7 @@ from requests.exceptions import RequestException
 from time import sleep
 from os.path import splitext
 from PIL import Image
-from configurationFile import CLASS_DICTIONARY, ALL_PATH, LABELBOX_API_KEY, METADATA_PATH
+from Various.configurationFile import CLASS_DICTIONARY, ALL_PATH, LABELBOX_API_KEY, METADATA_PATH
 
 class Labelbox:
     def __init__(self, inputFile, outputDirectory):
