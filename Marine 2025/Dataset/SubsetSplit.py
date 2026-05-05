@@ -1,8 +1,9 @@
+from pathlib import Path
 import numpy as np
 from json import load
 from shutil import copy
 from iterstrat.ml_stratifiers import MultilabelStratifiedShuffleSplit
-from configurationFile import SEED, NUM_CLASSES, SPLIT_RATIOS, ALL_PATH, METADATA_PATH, TRAINING_PATH, VALIDATION_PATH, TESTING_PATH
+from Various.configurationFile import SEED, NUM_CLASSES, SPLIT_RATIOS, ALL_PATH, METADATA_PATH, TRAINING_PATH, VALIDATION_PATH, TESTING_PATH
 
 class SubsetSplit:
     def __init__(self, metadataPath, rootPath, trainingPath, validationPath, testingPath):
@@ -76,10 +77,14 @@ class SubsetSplit:
         print(f'Validation Class Distribution: {validationDistribution}')
         print(f'Testing Class Distribution: {testingDistribution}')
     
-    def copySubset(self, subset, path):
+    def copySubset(self, subset, path:Path):
+        image_path = path / "Images"
+        image_path.mkdir(exist_ok=True, parents=True)
+        mask_path = path / "Masks"
+        mask_path.mkdir(parents=True, exist_ok=True)
         for ID in subset:
-            copy(self.rootPath / 'Images' / f'{ID}.jpg', path / 'Images' / f'{ID}.jpg')
-            copy(self.rootPath / 'Masks' / f'{ID}.npy', path / 'Masks' / f'{ID}.npy')
+            copy(self.rootPath / 'Images' / f'{ID}.jpg', image_path / f'{ID}.jpg')
+            copy(self.rootPath / 'Masks' / f'{ID}.npy', mask_path / f'{ID}.npy')
 
     def splitDataset(self):
         # Split the original dataset into training, validation and testing subsets.
@@ -89,4 +94,4 @@ class SubsetSplit:
         self.copySubset(validationSet, self.validationPath)
         self.copySubset(testingSet, self.testingPath)
 
-SubsetSplit(METADATA_PATH, ALL_PATH, TRAINING_PATH, VALIDATION_PATH, TESTING_PATH)
+# SubsetSplit(METADATA_PATH, ALL_PATH, TRAINING_PATH, VALIDATION_PATH, TESTING_PATH)

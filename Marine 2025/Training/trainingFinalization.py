@@ -2,7 +2,7 @@ from os import rename, remove
 from torch import randn
 from torch.onnx import export
 from json import dump, load
-from configurationFile import MODEL_PATH
+from Various.configurationFile import MODEL_PATH
 
 def saveTrialData(epoch, currentLR, trainingMetrics, validationMetrics, trialNumber):
     # Store all trial data in a JSON file to facilitate subsequent manipulations.

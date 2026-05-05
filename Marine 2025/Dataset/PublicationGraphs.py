@@ -3,7 +3,7 @@ from json import load
 from matplotlib.pyplot import subplots, savefig, close
 from seaborn import heatmap
 from textwrap import TextWrapper
-from configurationFile import CLASS_DICTIONARY, NUM_CLASSES, METADATA_PATH, VISUALIZATIONS_PATH
+from Various.configurationFile import CLASS_DICTIONARY, NUM_CLASSES, METADATA_PATH, VISUALIZATIONS_PATH
 
 class PublicationGraphs:
     def __init__(self, metadataPath, outputDirectory):

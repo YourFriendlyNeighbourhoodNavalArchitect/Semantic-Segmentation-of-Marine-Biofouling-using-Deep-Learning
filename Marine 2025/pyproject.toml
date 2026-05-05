@@ -1,0 +1,93 @@
+[project]
+name = "semantic_segmantation-of-marine-biofouling-using-deep-learning"
+version = "0.2.0"
+description = "Semantic-Segmentation-of-Marine-Biofouling-using-Deep-Learning"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{name = "Ioannis Karlatiras", email="giannhskarlathras@gmail.com"},{ name = "Orfeas Bourchas", email = "orfeas.bourchas@gmail.com" }]
+requires-python = "==3.12.*"
+keywords = ["Segmenatio", "Marine Biofouling","U-Net", "Attention U-Net"]
+
+
+dependencies = [
+    # Core ML dependencies
+    "dotenv",
+    "wandb",
+    # Scientific computing
+    "numpy",
+    "scipy",
+    "pandas",
+    "scikit-learn",
+    # Visualization
+    "matplotlib",
+    "seaborn",
+    # Data handling
+    "openpyxl",
+    "tqdm",
+    "torch",
+    "torchvision",
+    "torchaudio",
+    "optuna",
+    "torchmetrics",
+    "albumentations",
+    "iterative-stratification"
+]
+
+
+[tool.uv]
+dev-dependencies = [
+    "pip",
+    "ruff",
+    "mypy",
+    "pandas-stubs",
+    "ipython",
+    "ipykernel",
+    "jupyter",
+]
+
+
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu128", marker = "platform_system == 'Windows'" },
+  # { index = "pytorch-cu128", marker = "platform_system == 'Linux' and platform_machine == 'x86_64'" }
+]
+torchvision = [
+  { index = "pytorch-cu128", marker = "platform_system == 'Windows'" },
+  # { index = "pytorch-cu128", marker = "platform_system == 'Linux' and platform_machine == 'x86_64'" }
+]
+
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+select = ["ALL"]
+ignore = [
+
+    "T201",    # Print statements
+    "E501",    # Line too long
+    "RET504",  # Return.
+    "D417",    # Undocumented parameter.
+    "PLR0913", # More than 5 parameters in a function.
+    "ANN201",  # Public function return type.
+    "D100",    #
+    "D101",    #
+    "D102",    #
+    "D103",    # Public function docs.
+    "D107",    #
+    "ERA001",
+    "FBT001",
+    "FBT002",
+    "N802",    # Function name should be lowercase.
+    "N803",    # Argument in function should be lowercase.
+    "N806",    # Variable in function should be lowercase.
+    "TC001",   # Unused variable.
+    "TC002",   # Unused import.
+    "F722",   # Syntax error in type annotations (e.g., using Python 3.10+ syntax in a codebase targeting Python 3.9).
+]

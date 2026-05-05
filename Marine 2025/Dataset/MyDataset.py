@@ -4,7 +4,7 @@ from torch import from_numpy, float32
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms.v2 import Compose, ToImage, ToDtype
-from configurationFile import RESOLUTION
+from Various.configurationFile import RESOLUTION
 
 class MyDataset(Dataset):
     def __init__(self, rootPath, augmentationFlag):

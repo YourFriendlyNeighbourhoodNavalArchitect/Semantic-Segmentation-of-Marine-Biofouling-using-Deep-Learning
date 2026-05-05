@@ -1,7 +1,7 @@
 from matplotlib.pyplot import subplots
 from matplotlib.ticker import FuncFormatter, MultipleLocator
 from math import log10, floor
-from configurationFile import MODEL_PATH
+from Various.configurationFile import MODEL_PATH
 
 def logResults(epoch, currentLR, trainingMetrics, validationMetrics):
     # CMD outputs of key metrics to sanity-check training.

@@ -1,10 +1,10 @@
 from tqdm import tqdm
 from torch import no_grad
 from optuna.exceptions import TrialPruned
-from trainingVisualization import logResults, plotMetrics
-from trainingFinalization import saveTrialData
-from computeMetrics import computeMetrics
-from configurationFile import WARMUP, PATIENCE
+from Training.trainingVisualization import logResults, plotMetrics
+from Training.trainingFinalization import saveTrialData
+from Training.computeMetrics import computeMetrics
+from Various.configurationFile import WARMUP, PATIENCE
 
 def trainOneEpoch(model, trainingDataloader, optimizer, criterion, device):
     model.train()
