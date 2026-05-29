@@ -1,38 +1,75 @@
 from tqdm import tqdm
-from torch import no_grad
-from optuna.exceptions import TrialPruned
+from torch import no_grad, cat, argmax
 from Training.trainingVisualization import logResults, plotMetrics
 from Training.trainingFinalization import saveTrialData
 from Training.computeMetrics import computeMetrics
-from Various.configurationFile import WARMUP, PATIENCE
+from Various.configurationFile import WARMUP, PATIENCE, LOG_INTERVAL
+
+
+# Keys that hold scalar (macro-averaged) metrics.
+SCALAR_KEYS = ['Loss', 'Dice Coefficient', 'IoU', 'Accuracy', 'Precision', 'Recall']
+# Keys that hold per-class lists.
+PER_CLASS_KEYS = ['Per Class IoU', 'Per Class Accuracy', 'Per Class Precision', 'Per Class Recall']
+
+
+def _emptyAggregated():
+    """Return a fresh aggregation dict for one epoch."""
+    agg = {key: 0.0 for key in SCALAR_KEYS}
+    agg.update({key: None for key in PER_CLASS_KEYS})
+    return agg
+
+
+def _accumulatePerClass(aggregated, batchMetrics):
+    """Element-wise accumulation of per-class metric lists."""
+    for key in PER_CLASS_KEYS:
+        if key in batchMetrics and batchMetrics[key] is not None:
+            batchValues = batchMetrics[key]
+            if aggregated[key] is None:
+                aggregated[key] = [0.0] * len(batchValues)
+            for i, v in enumerate(batchValues):
+                aggregated[key][i] += v
+
+
+def _averageMetrics(aggregated, numBatches):
+    """Divide all accumulated metrics by the number of batches."""
+    averaged = {}
+    for key in SCALAR_KEYS:
+        averaged[key] = aggregated[key] / numBatches
+    for key in PER_CLASS_KEYS:
+        if aggregated[key] is not None:
+            averaged[key] = [v / numBatches for v in aggregated[key]]
+        else:
+            averaged[key] = None
+    return averaged
+
 
 def trainOneEpoch(model, trainingDataloader, optimizer, criterion, device):
     model.train()
-    aggregatedMetrics = {'Loss': 0, 'Dice Coefficient': 0, 'IoU': 0, 'Accuracy': 0, 'Precision': 0}
+    aggregated = _emptyAggregated()
 
     for data in tqdm(trainingDataloader, desc = 'Training'):
         # Send data to GPU.
         image = data[0].to(device)
         groundTruth = data[1].to(device)
         optimizer.zero_grad()
-        # Input tensor form: (B, C, H, W)
-        # Ground truth tensor form: (B, H, W)
         prediction = model(image)
         loss = criterion(prediction, groundTruth)
-        aggregatedMetrics['Loss'] += loss.item()
+        aggregated['Loss'] += loss.item()
         loss.backward()
         optimizer.step()
         # Compute metrics.
         batchMetrics = computeMetrics(prediction, groundTruth)
-        for key in batchMetrics:
-            aggregatedMetrics[key] += batchMetrics[key]
+        for key in SCALAR_KEYS:
+            if key != 'Loss' and key in batchMetrics:
+                aggregated[key] += batchMetrics[key]
+        _accumulatePerClass(aggregated, batchMetrics)
 
-    averagedMetrics = {key: value / len(trainingDataloader) for key, value in aggregatedMetrics.items()}
-    return averagedMetrics
+    return _averageMetrics(aggregated, len(trainingDataloader))
+
 
 def validateOneEpoch(model, validationDataloader, criterion, device):
     model.eval()
-    aggregatedMetrics = {'Loss': 0, 'Dice Coefficient': 0, 'IoU': 0, 'Accuracy': 0, 'Precision': 0}
+    aggregated = _emptyAggregated()
 
     with no_grad():
         for data in tqdm(validationDataloader, desc = 'Validation'):
@@ -40,15 +77,17 @@ def validateOneEpoch(model, validationDataloader, criterion, device):
             groundTruth = data[1].to(device)
             prediction = model(image)
             loss = criterion(prediction, groundTruth)
-            aggregatedMetrics['Loss'] += loss.item()
+            aggregated['Loss'] += loss.item()
             batchMetrics = computeMetrics(prediction, groundTruth)
-            for key in batchMetrics:
-                aggregatedMetrics[key] += batchMetrics[key]
+            for key in SCALAR_KEYS:
+                if key != 'Loss' and key in batchMetrics:
+                    aggregated[key] += batchMetrics[key]
+            _accumulatePerClass(aggregated, batchMetrics)
 
-    averagedMetrics = {key: value / len(validationDataloader) for key, value in aggregatedMetrics.items()}
-    return averagedMetrics
+    return _averageMetrics(aggregated, len(validationDataloader))
 
-def trainingLoop(model, trial, trainingDataloader, validationDataloader, optimizer, warmupScheduler, mainScheduler, criterion, device):
+
+def trainingLoop(model, trainingDataloader, validationDataloader, optimizer, warmupScheduler, mainScheduler, criterion, device, trialNumber = 0):
     trainingLossPlot = []
     validationLossPlot = []
     validationDiceScorePlot = []
@@ -59,6 +98,7 @@ def trainingLoop(model, trial, trainingDataloader, validationDataloader, optimiz
     maxEpochs = 0
 
     while True:
+        logged = False
         trainingMetrics = trainOneEpoch(model, trainingDataloader, optimizer, criterion, device)
         validationMetrics = validateOneEpoch(model, validationDataloader, criterion, device)
         currentLR = optimizer.param_groups[0]['lr']
@@ -68,18 +108,17 @@ def trainingLoop(model, trial, trainingDataloader, validationDataloader, optimiz
         else:
             mainScheduler.step(validationMetrics['Loss'])
 
-        # Logging of metrics.
+        # Append to plot lists every epoch (for smooth curves).
         trainingLossPlot.append(trainingMetrics['Loss'])
         validationLossPlot.append(validationMetrics['Loss'])
         validationDiceScorePlot.append(validationMetrics['Dice Coefficient'])
         validationIoUScorePlot.append(validationMetrics['IoU'])
-        logResults(maxEpochs, currentLR, trainingMetrics, validationMetrics)
-        saveTrialData(maxEpochs, currentLR, trainingMetrics, validationMetrics, trial.number)
-        
-        trial.report(validationMetrics['Loss'], maxEpochs)
-        if trial.should_prune():
-            # Get rid of unpromising trials early, to save on computational resources.
-            raise TrialPruned()
+
+        # Log and save every LOG_INTERVAL epochs, and always on the first epoch.
+        if maxEpochs == 1 or maxEpochs % LOG_INTERVAL == 0:
+            logResults(maxEpochs, currentLR, trainingMetrics, validationMetrics)
+            saveTrialData(maxEpochs, currentLR, trainingMetrics, validationMetrics, trialNumber)
+            logged = True
 
         # Models train indefinitely, until validation loss stops improving.
         if validationMetrics['Loss'] < bestValidationLoss:
@@ -87,10 +126,14 @@ def trainingLoop(model, trial, trainingDataloader, validationDataloader, optimiz
             patienceCounter = 0
         else:
             patienceCounter += 1
-        if patienceCounter >= PATIENCE:
+        if patienceCounter >= PATIENCE and not logged:
             print(f'Early stopping triggered after {maxEpochs} epochs.')
+            # Always log the final epoch.
+            if maxEpochs % LOG_INTERVAL != 0:
+                logResults(maxEpochs, currentLR, trainingMetrics, validationMetrics)
+                saveTrialData(maxEpochs, currentLR, trainingMetrics, validationMetrics, trialNumber)
             break
     
-    # Plot training metrics after training ends, to decrease computational overhead.
-    PNGPath = plotMetrics(trainingLossPlot, validationLossPlot, validationDiceScorePlot, validationIoUScorePlot, trial.number)
+    # Plot training metrics after training ends.
+    PNGPath = plotMetrics(trainingLossPlot, validationLossPlot, validationDiceScorePlot, validationIoUScorePlot, trialNumber)
     return trainingMetrics, validationMetrics, PNGPath, maxEpochs

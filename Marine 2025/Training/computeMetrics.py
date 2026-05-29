@@ -1,16 +1,64 @@
-from torch import argmax
+import torch
+from torchmetrics.functional.classification import (
+    multiclass_accuracy,
+    multiclass_precision,
+    multiclass_recall,
+)
 from torchmetrics.functional.segmentation import generalized_dice_score, mean_iou
-from torchmetrics.functional.classification import multiclass_accuracy, multiclass_precision
+
 from Various.configurationFile import NUM_CLASSES
 
-def computeMetrics(prediction, groundTruth):
-    # Convert logits to predictions.
-    prediction = argmax(prediction, dim = 1)
-    
-    diceScore = generalized_dice_score(prediction, groundTruth, num_classes = NUM_CLASSES, weight_type = 'linear', input_format = 'index')
-    IoUScore = mean_iou(prediction, groundTruth, num_classes = NUM_CLASSES, input_format = 'index')
-    accuracyScore = multiclass_accuracy(prediction, groundTruth, num_classes = NUM_CLASSES, average = 'macro')
-    precisionScore = multiclass_precision(prediction, groundTruth, num_classes = NUM_CLASSES, average = 'macro')
-    
-    return {'Dice Coefficient': diceScore.mean().item(), 'IoU': IoUScore.mean().item(), 'Accuracy': accuracyScore.mean().item(),
-            'Precision': precisionScore.mean().item()}
+def computeMetrics(prediction: torch.Tensor, groundTruth: torch.Tensor) -> tuple[dict, dict]:
+    prediction = torch.argmax(prediction, dim=1)
+
+    diceScore = generalized_dice_score(
+        prediction, groundTruth, num_classes=NUM_CLASSES,
+        weight_type="linear", input_format="index",
+    )
+    IoUScore = mean_iou(
+        prediction, groundTruth, num_classes=NUM_CLASSES, input_format="index"
+    )
+    accuracyScore = multiclass_accuracy(
+        prediction, groundTruth, num_classes=NUM_CLASSES, average="macro"
+    )
+    precisionScore = multiclass_precision(
+        prediction, groundTruth, num_classes=NUM_CLASSES, average="macro"
+    )
+    recallScore = multiclass_recall(
+        prediction, groundTruth, num_classes=NUM_CLASSES, average="macro"
+    )
+
+    perClassDice = generalized_dice_score(
+        prediction, groundTruth, num_classes=NUM_CLASSES,
+        weight_type="linear", input_format="index", per_class=True,
+    ).squeeze(0)
+    perClassIoU = mean_iou(
+        prediction, groundTruth, num_classes=NUM_CLASSES,
+        input_format="index", per_class=True,
+    ).mean(dim=0)  # Average over batch -> shape (NUM_CLASSES,)
+    perClassAccuracy = multiclass_accuracy(
+        prediction, groundTruth, num_classes=NUM_CLASSES, average="none"
+    )
+    perClassPrecision = multiclass_precision(
+        prediction, groundTruth, num_classes=NUM_CLASSES, average="none"
+    )
+    perClassRecall = multiclass_recall(
+        prediction, groundTruth, num_classes=NUM_CLASSES, average="none"
+    )
+
+    macro_metrics = {
+        "Dice Coefficient": diceScore.mean().item(),
+        "IoU": IoUScore.mean().item(),
+        "Accuracy": accuracyScore.item(),
+        "Precision": precisionScore.item(),
+        "Recall": recallScore.item(),
+    }
+    per_class_metrics = {
+        "Per Class Dice": perClassDice.tolist(),
+        "Per Class IoU": perClassIoU.tolist(),
+        "Per Class Accuracy": perClassAccuracy.tolist(),
+        "Per Class Precision": perClassPrecision.tolist(),
+        "Per Class Recall": perClassRecall.tolist(),
+    }
+    total_metrics = {**macro_metrics, **per_class_metrics}
+    return total_metrics
