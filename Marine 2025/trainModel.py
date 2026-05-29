@@ -1,8 +1,9 @@
-from optuna import create_study
-from optuna.pruners import MedianPruner
-from optuna.samplers import TPESampler
-
-from Training.trainingFinalization import deleteResiduals, saveONNX, saveResults
+from Training.trainingFinalization import (
+    cleanupAndRename,
+    saveCheckpoint,
+    saveONNX,
+    saveResults,
+)
 from Training.trainingInitialization import (
     getDataloaders,
     getOptimizer,
@@ -12,42 +13,46 @@ from Training.trainingInitialization import (
     setupDevice,
 )
 from Training.trainingPreparation import trainingLoop
-from Various.configurationFile import MODEL_PATH, NUM_CLASSES, RESOLUTION, SEED
+from Various.configurationFile import (
+    LEARNING_RATE,
+    MODEL_PATH,
+    NUM_CLASSES_v2,
+    RESOLUTION,
+    SEED,
+)
 
 
-def trainModel(savePath, device, numClasses, numTrials):
-    # Ensure reproducibility between runs.
+def trainAttentionUNet():
     setSeed(SEED)
-    # List to keep track of all the saved files for each trial.
-    savedFiles = []
-    # Initiate hyperparameter optimization with respect to validation loss.
-    # Use Tree-structured Parzen Estimator (TPE) to exploe hyperparameter space.
-    study = create_study(direction = 'minimize', sampler = TPESampler(seed = SEED), 
-                         pruner = MedianPruner(n_startup_trials = 10, n_warmup_steps = 30))
+    device = setupDevice()
 
-    def objective(trial):
-        learningRate = trial.suggest_float('learningRate', 1e-5, 1e-3, log = True)
-        criterion = initializeLossFunction()
-        model = initializeModel(inChannels = 3, numClasses = numClasses, device = device)
-        optimizer, warmupScheduler, mainScheduler = getOptimizer(model.parameters(), learningRate)
-        trainingDataloader, validationDataloader = getDataloaders()
-        trainingMetrics, validationMetrics, PNGPath, maxEpochs = trainingLoop(model, trial, trainingDataloader, validationDataloader, optimizer,
-                                                                              warmupScheduler, mainScheduler, criterion, device)
-        inputShape = (1, 3, *RESOLUTION)
-        # Save valuable trial results separately.
-        ONNXPath = saveONNX(model, device, inputShape, MODEL_PATH, trial.number)
-        JSONPath = saveResults(trial, maxEpochs, trainingMetrics, validationMetrics, MODEL_PATH)
-        savedFiles.append((ONNXPath, JSONPath, PNGPath))
-        return validationMetrics['Loss']
+    savePath = MODEL_PATH / 'AttentionUNet'
+    savePath.mkdir(exist_ok=True, parents=True)
 
-    # Obtain optimal trial.
-    study.optimize(objective, n_trials = numTrials)
-    bestTrial = study.best_trial
-    # Clean up non-optimal saved files.
-    deleteResiduals(savedFiles, bestTrial.number, savePath)
+    # Attention U-Net: same 64→128→256→512→1024 structure,
+    # with spatial attention gates + squeeze-and-excitation blocks.
+    model = initializeModel(inChannels=3, numClasses=NUM_CLASSES_v2, device=device)
+
+    criterion = initializeLossFunction()
+    optimizer, warmupScheduler, mainScheduler = getOptimizer(model.parameters(), LEARNING_RATE)
+    trainingDataloader, validationDataloader = getDataloaders()
+
+    trialNumber = 0
+    trainingMetrics, validationMetrics, PNGPath, maxEpochs = trainingLoop(
+        model, trainingDataloader, validationDataloader, optimizer,
+        warmupScheduler, mainScheduler, criterion, device, trialNumber=trialNumber
+    )
+
+    inputShape = (1, 3, *RESOLUTION)
+    saveONNX(model, device, inputShape, savePath, trialNumber)
+    saveCheckpoint(model, optimizer, maxEpochs, validationMetrics, savePath, trialNumber)
+    saveResults(maxEpochs, LEARNING_RATE, trainingMetrics, validationMetrics, savePath, trialNumber)
+    cleanupAndRename(trialNumber, savePath)
+
+    print(f'\nAttention U-Net training complete after {maxEpochs} epochs.')
+    print(f'Validation Dice: {validationMetrics["Dice Coefficient"]:.4f}')
+    print(f'Validation IoU:  {validationMetrics["IoU"]:.4f}')
+
 
 if __name__ == '__main__':
-    # Multiprocessing guard.
-    device = setupDevice()
-    numTrials = 1
-    trainModel(MODEL_PATH, device, NUM_CLASSES, numTrials)
+    trainAttentionUNet()

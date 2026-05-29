@@ -6,27 +6,33 @@ from pathlib import Path
 # load_dotenv()
 # LABELBOX_API_KEY = getenv('LABELBOX_API_KEY')
 
-# # Model performs classification amongst the classes shown below.
-# CLASS_DICTIONARY = {'Clean Hull': {'index': 0, 'color': [0, 255, 0]},
-#                     'Soft Fouling': {'index': 1, 'color': [255, 255, 106]},
-#                     'Hard Fouling': {'index': 2, 'color': [255, 87, 51]},
-#                     'Background/Other': {'index': 3, 'color': [157, 41, 177]}}
+# # Model performs classification amongst the merged classes shown below.
 
+# Original 5-class scheme (before merge) — kept for reference.
 CLASS_DICTIONARY = {'Clean Hull': {'index': 0, 'color': [0, 255, 0]},
                     'Slime/Algae': {'index': 1, 'color': [255, 255, 106]},
                     'Calcareous Deposits': {'index': 2, 'color': [255, 87, 51]},
                     'Barnacles/Molluscs': {'index': 3, 'color': [157, 41, 177]},
                     'Background/Other': {'index': 4, 'color': [43, 138, 255]}}
 
+CLASS_DICTIONARY_v2 = {'Clean Hull': {'index': 0, 'color': [0, 255, 0]},
+                    'Soft Fouling': {'index': 1, 'color': [255, 255, 106]},
+                    'Hard Fouling': {'index': 2, 'color': [255, 87, 51]},
+                    'Background/Other': {'index': 3, 'color': [157, 41, 177]}}
+
 
 # Project configuration variables.
-SEED = 4
+SEED = 42
 RESOLUTION = (512, 512)
 NUM_CLASSES = len(CLASS_DICTIONARY)
+NUM_CLASSES_v2 = len(CLASS_DICTIONARY_v2)
 SPLIT_RATIOS = (0.8, 0.1, 0.1)
 BATCH_SIZE = 8
 WARMUP = 10
 PATIENCE = 50
+LOG_INTERVAL = 5
+# Learning rate from the best Attention U-Net trial (Optuna result).
+LEARNING_RATE = 0.00041
 
 # Paths for the project.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

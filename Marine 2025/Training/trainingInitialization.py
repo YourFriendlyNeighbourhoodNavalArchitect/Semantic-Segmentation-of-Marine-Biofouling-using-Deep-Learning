@@ -23,7 +23,7 @@ def getDataloaders():
         batch_size=BATCH_SIZE,
         shuffle=True,
         # pin_memory=True,
-        num_workers=4,
+        num_workers=0,
     )
     # Shuffling is not required during validation.
     validationDataloader = DataLoader(
@@ -31,7 +31,7 @@ def getDataloaders():
         batch_size=BATCH_SIZE,
         shuffle=False,
         # pin_memory=True,
-        num_workers=4,
+        num_workers=0,
     )
     return trainingDataloader, validationDataloader
 
