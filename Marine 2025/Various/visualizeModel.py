@@ -1,9 +1,11 @@
-from torch import randn
-from torchviz import make_dot
-from torchsummary import summary
-from trainingInitialization import initializeModel, setupDevice
 from initializeWeights import initializeWeights
-from Various.configurationFile import RESOLUTION, NUM_CLASSES, VISUALIZATIONS_PATH
+from torch import randn
+from torchsummary import summary
+from torchviz import make_dot
+from trainingInitialization import initializeModel, setupDevice
+
+from Various.configurationFile import NUM_CLASSES, RESOLUTION, VISUALIZATIONS_PATH
+
 
 def visualizeModel():
     # Dummy script to visualize the network and confirm its structure and output form.

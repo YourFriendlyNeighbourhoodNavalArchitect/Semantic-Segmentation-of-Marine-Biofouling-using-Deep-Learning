@@ -1,12 +1,15 @@
-from torch.nn import Module, Conv2d
-from u_net_models.UpSample import UpSample
-from u_net_models.DownSample import DownSample
+from torch import Tensor
+from torch.nn import Conv2d, Module
+
 from u_net_models.BlueArrow import BlueArrow
+from u_net_models.DownSample import DownSample
+from u_net_models.UpSample import UpSample
+
 
 class UNet(Module):
     # Architecture largely based on the original paper.
     # Network output is of the form (B, C, H, W).
-    def __init__(self, inChannels, numClasses):
+    def __init__(self, inChannels: int, numClasses: int) -> None:
         super().__init__()
         self.numClasses = numClasses
 
@@ -22,9 +25,9 @@ class UNet(Module):
         self.upConvolutionThree = UpSample(256, 128)
         self.upConvolutionFour = UpSample(128, 64)
 
-        self.output = Conv2d(64, numClasses, kernel_size = 1)
-        
-    def forward(self, x):
+        self.output = Conv2d(64, numClasses, kernel_size=1)
+
+    def forward(self, x: Tensor) -> Tensor:
         downOne, poolingOne = self.downConvolutionOne(x)
         downTwo, poolingTwo = self.downConvolutionTwo(poolingOne)
         downThree, poolingThree = self.downConvolutionThree(poolingTwo)

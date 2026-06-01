@@ -12,7 +12,7 @@ from Training.trainingInitialization import (
 )
 from Training.trainingPreparation import trainingLoop
 from u_net_models.SimpleUNet import SimpleUNet
-from Various.configurationFile import MODEL_PATH, NUM_CLASSES, RESOLUTION, SEED
+from Various.configurationFile import MODEL_PATH, NUM_CLASSES_v2, RESOLUTION, SEED
 
 
 def trainModel2(savePath, device, numClasses, numTrials):
@@ -51,4 +51,4 @@ if __name__ == '__main__':
     # Multiprocessing guard.
     device = setupDevice()
     numTrials = 50
-    trainModel2(MODEL_PATH, device, NUM_CLASSES, numTrials)
+    trainModel2(MODEL_PATH, device, NUM_CLASSES_v2, numTrials)

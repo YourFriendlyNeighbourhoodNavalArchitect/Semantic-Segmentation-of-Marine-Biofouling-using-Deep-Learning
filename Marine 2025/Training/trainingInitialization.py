@@ -1,20 +1,26 @@
 from random import seed as PythonSeed
+
+import torch
 from numpy.random import seed as NumpySeed
-from torch import manual_seed as TorchSeed
-from torch.cuda import manual_seed as CUDASeed
+from torch import optim
 from torch.backends import cudnn
 from torch.cuda import is_available
-from torch import optim
-from Training.LossFunction import LossFunction
+from torch.optim.lr_scheduler import LambdaLR, ReduceLROnPlateau
 from torch.utils.data import DataLoader
-from torch.optim.lr_scheduler import ReduceLROnPlateau, LambdaLR
+
 from Dataset.MyDataset import MyDataset
-from u_net_models.UNet import UNet
+from Training.LossFunction import LossFunction
 from u_net_models.initializeWeights import initializeWeights
-from Various.configurationFile import BATCH_SIZE, WARMUP, TRAINING_PATH, VALIDATION_PATH
+from u_net_models.UNet import UNet
+from Various.configurationFile import BATCH_SIZE, TRAINING_PATH, VALIDATION_PATH, WARMUP
 
 
-def getDataloaders():
+def getDataloaders(
+    pin_memory: bool = False,
+) -> tuple[
+    DataLoader,
+    DataLoader,
+]:
     # Only the training subset is to be augmented.
     trainingDataset = MyDataset(TRAINING_PATH, augmentationFlag=True)
     validationDataset = MyDataset(VALIDATION_PATH, augmentationFlag=False)
@@ -22,7 +28,7 @@ def getDataloaders():
         dataset=trainingDataset,
         batch_size=BATCH_SIZE,
         shuffle=True,
-        # pin_memory=True,
+        pin_memory=pin_memory,
         num_workers=0,
     )
     # Shuffling is not required during validation.
@@ -30,13 +36,20 @@ def getDataloaders():
         dataset=validationDataset,
         batch_size=BATCH_SIZE,
         shuffle=False,
-        # pin_memory=True,
+        pin_memory=pin_memory,
         num_workers=0,
     )
     return trainingDataloader, validationDataloader
 
 
-def getOptimizer(parameters, learningRate):
+def getOptimizer(
+    parameters: any,
+    learningRate: float,
+) -> tuple[
+    optim.Optimizer,
+    optim.lr_scheduler.LRScheduler,
+    optim.lr_scheduler.LRScheduler,
+]:
     # Weight decay requires careful tuning when implemented alongside batch normalization [https://tinyurl.com/3kzm37tz].
     # For the purposes of this paper, we revert to the traditional Adam optimizer, without weight decay.
     optimizer = optim.Adam(parameters, lr=learningRate)
@@ -49,7 +62,11 @@ def getOptimizer(parameters, learningRate):
     return optimizer, warmupScheduler, mainScheduler
 
 
-def initializeModel(inChannels, numClasses, device):
+def initializeModel(
+    inChannels: int,
+    numClasses: int,
+    device: str,
+) -> UNet:
     # Model shall be sent to GPU to expedite execution.
     model = UNet(inChannels=inChannels, numClasses=numClasses).to(device)
     model.apply(initializeWeights)
@@ -59,23 +76,23 @@ def initializeModel(inChannels, numClasses, device):
 def setupDevice():
     if is_available():
         device = "cuda"
-        print(f"Using GPU.")
+        print("Using GPU.")
     else:
         device = "cpu"
-        print(f"Using CPU.")
+        print("Using CPU.")
     return device
 
 
-def initializeLossFunction():
+def initializeLossFunction() -> LossFunction:
     # A weighted combination of cross-entropy and Dice loss is used.
     return LossFunction()
 
 
-def setSeed(seed):
+def setSeed(seed: int):
     # Set global seet to ensure reproducibility.
     PythonSeed(seed)
-    NumpySeed(seed)
-    TorchSeed(seed)
-    CUDASeed(seed)
+    NumpySeed(seed)  # noqa: NPY002
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
     cudnn.deterministic = True
     cudnn.benchmark = False
