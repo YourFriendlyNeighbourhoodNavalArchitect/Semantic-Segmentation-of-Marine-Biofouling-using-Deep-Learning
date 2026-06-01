@@ -2,7 +2,7 @@ import torch
 from torch.nn import CrossEntropyLoss, Module
 from torchmetrics.functional.segmentation import generalized_dice_score
 
-from Various.configurationFile import NUM_CLASSES
+from Various.configurationFile import NUM_CLASSES_new
 
 
 class LossFunction(Module):
@@ -17,7 +17,7 @@ class LossFunction(Module):
         diceScore = generalized_dice_score(
             prediction,
             groundTruth,
-            num_classes=NUM_CLASSES,
+            num_classes=NUM_CLASSES_new,
             weight_type="linear",
             input_format="index",
         )
