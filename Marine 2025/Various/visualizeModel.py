@@ -1,26 +1,27 @@
-from initializeWeights import initializeWeights
 from torch import randn
 from torchsummary import summary
 from torchviz import make_dot
-from trainingInitialization import initializeModel, setupDevice
 
-from Various.configurationFile import NUM_CLASSES, RESOLUTION, VISUALIZATIONS_PATH
+from Training.trainingInitialization import initializeModel, setupDevice
+from u_net_models.initializeWeights import initializeWeights
+from Various.configurationFile import RESOLUTION, VISUALIZATIONS_PATH, NUM_CLASSES_new
 
 
-def visualizeModel():
+def visualizeModel() -> None:
     # Dummy script to visualize the network and confirm its structure and output form.
     device = setupDevice()
     # Segmentation is performed in various different classes, as explained in Various.configurationFile.py.
-    model = initializeModel(inChannels = 3, numClasses = NUM_CLASSES, device = device)
+    model = initializeModel(inChannels=3, numClasses=NUM_CLASSES_new, device=device)
     model.apply(initializeWeights)
-    summary(model, input_size = (3, *RESOLUTION))
+    summary(model, input_size=(3, *RESOLUTION))
 
     dummyInput = randn(1, 3, *RESOLUTION).to(device)
     output = model(dummyInput)
     print(output.shape)
-    dot = make_dot(output, params = dict(model.named_parameters()))
-    path = VISUALIZATIONS_PATH / 'U-Net architecture graph'
-    outputPath = dot.render(path, format = 'png')
-    print(f'File saved to {outputPath}.')
+    dot = make_dot(output, params=dict(model.named_parameters()))
+    path = VISUALIZATIONS_PATH / "U-Net architecture graph"
+    outputPath = dot.render(path, format="png")
+    print(f"File saved to {outputPath}.")
+
 
 visualizeModel()

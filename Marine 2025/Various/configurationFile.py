@@ -10,7 +10,7 @@ from pathlib import Path
 # # Model performs classification amongst the merged classes shown below.
 
 # Original 5-class scheme (before merge) — kept for reference.
-CLASS_DICTIONARY = {
+CLASS_DICTIONARY_old = {
     "Clean Hull": {"index": 0, "color": [0, 255, 0]},
     "Slime/Algae": {"index": 1, "color": [255, 255, 106]},
     "Calcareous Deposits": {"index": 2, "color": [255, 87, 51]},
@@ -18,7 +18,7 @@ CLASS_DICTIONARY = {
     "Background/Other": {"index": 4, "color": [43, 138, 255]},
 }
 
-CLASS_DICTIONARY_v2 = {
+CLASS_DICTIONARY_new= {
     "Clean Hull": {"index": 0, "color": [0, 255, 0]},
     "Soft Fouling": {"index": 1, "color": [255, 255, 106]},
     "Hard Fouling": {"index": 2, "color": [255, 87, 51]},
@@ -29,8 +29,8 @@ CLASS_DICTIONARY_v2 = {
 # Project configuration variables.
 SEED = 42
 RESOLUTION = (512, 512)
-NUM_CLASSES = len(CLASS_DICTIONARY)
-NUM_CLASSES_v2 = len(CLASS_DICTIONARY_v2)
+NUM_CLASSES_old = len(CLASS_DICTIONARY_old)
+NUM_CLASSES_new = len(CLASS_DICTIONARY_new)
 SPLIT_RATIOS = (0.8, 0.1, 0.1)
 BATCH_SIZE = 8
 WARMUP = 10

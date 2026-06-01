@@ -1,99 +1,132 @@
+from pathlib import Path
+
 import numpy as np
-from MyDataset import MyDataset
-from matplotlib.pyplot import subplots, draw, show
 from matplotlib.lines import Line2D
-from Various.configurationFile import CLASS_DICTIONARY, ALL_PATH
+from matplotlib.pyplot import draw, show, subplots
+from MyDataset import MyDataset
+
+from Various.configurationFile import ALL_PATH, CLASS_DICTIONARY_new
+
 
 class DatasetVisualizer:
-    def __init__(self, rootPath):
+    def __init__(self, rootPath: Path) -> None:
         self.rootPath = rootPath
         self.dataset = self.loadDataset()
         self.currentIndex = 0
         self.figure, self.axes = subplots(1, 2)
-        self.figure.subplots_adjust(left = 0.025, right = 0.975, top = 0.95, bottom = 0.025, wspace = 0.025)
-        self.classColors = CLASS_DICTIONARY
+        self.figure.subplots_adjust(
+            left=0.025, right=0.975, top=0.95, bottom=0.025, wspace=0.025
+        )
+        self.classColors = CLASS_DICTIONARY_new
         self.updatePlot()
-        self.figure.canvas.mpl_connect('key_press_event', self.onKeyPress)
+        self.figure.canvas.mpl_connect("key_press_event", self.onKeyPress)
         show()
 
     def loadDataset(self):
-        dataset = MyDataset(self.rootPath, augmentationFlag = True)
-        print(f'Total number of samples in the dataset: {len(dataset)}')
+        dataset = MyDataset(self.rootPath, augmentationFlag=True)
+        print(f"Total number of samples in the dataset: {len(dataset)}")
         return dataset
 
-    def calculateClassCoverage(self, mask):
+    def calculateClassCoverage(self, mask: np.ndarray) -> dict[str, float]:
         # Calculate the percentage coverage of each class in the mask.
         try:
             height, width = mask.shape
             totalPixels = height * width
-            unique, counts = np.unique(mask, return_counts = True)
+            unique, counts = np.unique(mask, return_counts=True)
             classCoverage = {}
 
             for className, properties in self.classColors.items():
-                classIndex = properties['index']
-                classPixels = counts[np.where(unique == classIndex)][0] if classIndex in unique else 0
+                classIndex = properties["index"]
+                classPixels = (
+                    counts[np.where(unique == classIndex)][0]
+                    if classIndex in unique
+                    else 0
+                )
                 classCoverage[className] = (classPixels / totalPixels) * 100
             return classCoverage
 
         except Exception as e:
-            print(f'Error calculating class coverage: {e}')
+            print(f"Error calculating class coverage: {e}")
             raise
 
-    def classIndicesToRGB(self, mask):
+    def classIndicesToRGB(self, mask: np.ndarray) -> np.ndarray:
         # Map class indices to RGB colors.
         try:
             height, width = mask.shape
-            RGBMask = np.zeros((height, width, 3), dtype = np.uint8)
-            for _, properties in self.classColors.items():
-                classIndex = properties['index']
-                color = properties['color']
+            RGBMask = np.zeros((height, width, 3), dtype=np.uint8)
+            for _, properties in self.classColors.items():  # noqa: PERF102
+                classIndex = properties["index"]
+                color = properties["color"]
                 RGBMask[mask == classIndex] = color
-            
-            return RGBMask
+            return RGBMask  # noqa: TRY300
 
         except Exception as e:
-            print(f'Error converting mask to RGB: {e}')
+            print(f"Error converting mask to RGB: {e}")
             raise
 
-    def onKeyPress(self, event):
-        if event.key == 'right':
+    def onKeyPress(self, event):  # noqa: ANN001
+        if event.key == "right":
             self.currentIndex = (self.currentIndex + 1) % len(self.dataset)
             self.updatePlot()
-        elif event.key == 'left':
+        elif event.key == "left":
             self.currentIndex = (self.currentIndex - 1) % len(self.dataset)
             self.updatePlot()
         else:
-            print('Invalid key pressed. Use left or right arrow keys.')
-    
-    def generateLegend(self, coverage):
+            print("Invalid key pressed. Use left or right arrow keys.")
+
+    def generateLegend(
+        self,
+        coverage: dict[str, float],
+    ) -> tuple[list[str], list[Line2D]]:
         # Labels appear only for the classes which appear in the mask.
-        filteredCoverage = {className: classCoverage for className, classCoverage in coverage.items() if classCoverage > 0}
-        legendLabels = [f'{className}: {filteredCoverage[className]:.2f}%' for className in filteredCoverage]
-        handles = [Line2D([0], [0], marker = 's', color = 'w', 
-                   markerfacecolor = np.array(self.classColors[className]['color']) / 255, 
-                   markersize = 6) for className in filteredCoverage]
+        filteredCoverage = {
+            className: classCoverage
+            for className, classCoverage in coverage.items()
+            if classCoverage > 0
+        }
+        legendLabels = [
+            f"{className}: {filteredCoverage[className]:.2f}%"
+            for className in filteredCoverage
+        ]
+        handles = [
+            Line2D(
+                [0],
+                [0],
+                marker="s",
+                color="w",
+                markerfacecolor=np.array(self.classColors[className]["color"]) / 255,
+                markersize=6,
+            )
+            for className in filteredCoverage
+        ]
         return legendLabels, handles
 
     def updatePlot(self):
         # Utilizing Pyplot, print image and mask side by side.
         image, mask = self.dataset[self.currentIndex]
         RGBMask = self.classIndicesToRGB(mask)
-        
-        self.axes[0].imshow(image.permute(1, 2, 0).numpy(), animated = True)
-        self.axes[0].set_title('Image')
-        self.axes[0].axis('off')
-        self.axes[1].imshow(RGBMask, animated = True)
-        self.axes[1].set_title('Mask')
-        self.axes[1].axis('off')
-        
+
+        self.axes[0].imshow(image.permute(1, 2, 0).numpy(), animated=True)
+        self.axes[0].set_title("Image")
+        self.axes[0].axis("off")
+        self.axes[1].imshow(RGBMask, animated=True)
+        self.axes[1].set_title("Mask")
+        self.axes[1].axis("off")
+
         # Calculate and display class coverage.
         coverage = self.calculateClassCoverage(mask)
         legendLabels, handles = self.generateLegend(coverage)
-        self.axes[1].legend(handles = handles, labels = legendLabels, 
-                            loc = 'upper right', title = 'Class Coverage', 
-                            title_fontsize = 10, fontsize = 8)
+        self.axes[1].legend(
+            handles=handles,
+            labels=legendLabels,
+            loc="upper right",
+            title="Class Coverage",
+            title_fontsize=10,
+            fontsize=8,
+        )
 
-        self.figure.canvas.manager.set_window_title(f'Dataset Visualizer')
+        self.figure.canvas.manager.set_window_title("Dataset Visualizer")
         draw()
+
 
 DatasetVisualizer(ALL_PATH)

@@ -18,7 +18,7 @@ from Various.configurationFile import (
     MODEL_PATH,
     RESOLUTION,
     SEED,
-    NUM_CLASSES_v2,
+    NUM_CLASSES_new,
 )
 
 
@@ -31,7 +31,7 @@ def trainAttentionUNet():
 
     # Attention U-Net: same 64→128→256→512→1024 structure,
     # with spatial attention gates + squeeze-and-excitation blocks.
-    model = initializeModel(inChannels=3, numClasses=NUM_CLASSES_v2, device=device)
+    model = initializeModel(inChannels=3, numClasses=NUM_CLASSES_new, device=device)
 
     criterion = initializeLossFunction()
     optimizer, warmupScheduler, mainScheduler = getOptimizer(

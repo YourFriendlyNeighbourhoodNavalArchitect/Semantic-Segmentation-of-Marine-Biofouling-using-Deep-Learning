@@ -29,6 +29,8 @@ dependencies = [
     "torchaudio",
     "optuna",
     "torchmetrics",
+    "torchsummary",
+    "torchviz",
     "albumentations",
     "iterative-stratification"
 ]
