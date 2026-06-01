@@ -21,7 +21,7 @@ from Various.configurationFile import (
     MODEL_PATH,
     RESOLUTION,
     SEED,
-    NUM_CLASSES_v2,
+    NUM_CLASSES_new,
 )
 
 
@@ -35,7 +35,7 @@ def trainSimpleUNet():
     savePath.mkdir(exist_ok=True, parents=True)
 
     # Model initialisation with Kaiming weights (same as Attention U-Net).
-    model = SimpleUNet(inChannels=3, numClasses=NUM_CLASSES_v2).to(device)
+    model = SimpleUNet(inChannels=3, numClasses=NUM_CLASSES_new).to(device)
     model.apply(initializeWeights)
 
     # Same training setup as the best Attention U-Net trial.

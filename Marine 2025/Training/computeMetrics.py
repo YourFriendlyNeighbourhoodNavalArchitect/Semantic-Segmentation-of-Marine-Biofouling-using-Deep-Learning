@@ -6,7 +6,7 @@ from torchmetrics.functional.classification import (
 )
 from torchmetrics.functional.segmentation import generalized_dice_score, mean_iou
 
-from Various.configurationFile import NUM_CLASSES_v2
+from Various.configurationFile import NUM_CLASSES_new
 
 
 def computeMetrics(
@@ -18,39 +18,39 @@ def computeMetrics(
     diceScore = generalized_dice_score(
         prediction,
         groundTruth,
-        num_classes=NUM_CLASSES_v2,
+        num_classes=NUM_CLASSES_new,
         weight_type="linear",
         input_format="index",
     )
     IoUScore = mean_iou(
         prediction,
         groundTruth,
-        num_classes=NUM_CLASSES_v2,
+        num_classes=NUM_CLASSES_new,
         input_format="index",
     )
     accuracyScore = multiclass_accuracy(
         prediction,
         groundTruth,
-        num_classes=NUM_CLASSES_v2,
+        num_classes=NUM_CLASSES_new,
         average="macro",
     )
     precisionScore = multiclass_precision(
         prediction,
         groundTruth,
-        num_classes=NUM_CLASSES_v2,
+        num_classes=NUM_CLASSES_new,
         average="macro",
     )
     recallScore = multiclass_recall(
         prediction,
         groundTruth,
-        num_classes=NUM_CLASSES_v2,
+        num_classes=NUM_CLASSES_new,
         average="macro",
     )
 
     perClassDice = generalized_dice_score(
         prediction,
         groundTruth,
-        num_classes=NUM_CLASSES_v2,
+        num_classes=NUM_CLASSES_new,
         weight_type="linear",
         input_format="index",
         per_class=True,
@@ -58,26 +58,26 @@ def computeMetrics(
     perClassIoU = mean_iou(
         prediction,
         groundTruth,
-        num_classes=NUM_CLASSES_v2,
+        num_classes=NUM_CLASSES_new,
         input_format="index",
         per_class=True,
-    ).mean(dim=0)  # Average over batch -> shape (NUM_CLASSES_v2,)
+    ).mean(dim=0)  # Average over batch -> shape (NUM_CLASSES_new,)
     perClassAccuracy = multiclass_accuracy(
         prediction,
         groundTruth,
-        num_classes=NUM_CLASSES_v2,
+        num_classes=NUM_CLASSES_new,
         average="none",
     )
     perClassPrecision = multiclass_precision(
         prediction,
         groundTruth,
-        num_classes=NUM_CLASSES_v2,
+        num_classes=NUM_CLASSES_new,
         average="none",
     )
     perClassRecall = multiclass_recall(
         prediction,
         groundTruth,
-        num_classes=NUM_CLASSES_v2,
+        num_classes=NUM_CLASSES_new,
         average="none",
     )
 

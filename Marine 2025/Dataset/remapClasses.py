@@ -1,6 +1,8 @@
-import numpy as np
 from pathlib import Path
-from Various.configurationFile import CLASS_DICTIONARY_v2
+
+import numpy as np
+
+from Various.configurationFile import CLASS_DICTIONARY_new
 
 # Mapping from the original 5-class scheme to the merged 4-class scheme.
 # Original:  Clean Hull (0), Slime/Algae (1), Calcareous Deposits (2), Barnacles/Molluscs (3), Background/Other (4)
@@ -9,7 +11,7 @@ from Various.configurationFile import CLASS_DICTIONARY_v2
 REMAP = np.array([0, 1, 2, 2, 3], dtype=np.uint8)
 
 # Merged class names for reporting.
-MERGED_CLASS_NAMES = list(CLASS_DICTIONARY_v2.keys())
+MERGED_CLASS_NAMES = list(CLASS_DICTIONARY_new.keys())
 
 
 def remapMasks(maskDirectory: Path):
