@@ -90,4 +90,6 @@ ignore = [
     "TC001",   # Unused variable.
     "TC002",   # Unused import.
     "F722",   # Syntax error in type annotations (e.g., using Python 3.10+ syntax in a codebase targeting Python 3.9).
+    "N999",
+    "N812",
 ]

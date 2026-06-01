@@ -1,9 +1,14 @@
-from torch.nn import Module, Sequential, Conv2d, BatchNorm2d, ReLU, MaxPool2d, Upsample
-from torch import cat
+import torch
+from torch.nn import BatchNorm2d, Conv2d, MaxPool2d, Module, ReLU, Sequential, Upsample
+
 
 class SimpleConvBlock(Module):
     # Simple convolution block without attention mechanisms.
-    def __init__(self, inChannels, outChannels):
+    def __init__(
+        self,
+        inChannels: int,
+        outChannels: int,
+    ) -> None:
         super().__init__()
         self.convolution = Sequential(
             Conv2d(inChannels, outChannels, kernel_size=3, padding=1),
@@ -11,45 +16,60 @@ class SimpleConvBlock(Module):
             ReLU(inplace=True),
             Conv2d(outChannels, outChannels, kernel_size=3, padding=1),
             BatchNorm2d(outChannels),
-            ReLU(inplace=True)
+            ReLU(inplace=True),
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.convolution(x)
+
 
 class SimpleDownSample(Module):
     # Simple downsampling block without attention.
-    def __init__(self, inChannels, outChannels):
+    def __init__(
+        self,
+        inChannels: int,
+        outChannels: int,
+    ) -> None:
         super().__init__()
         self.convolution = SimpleConvBlock(inChannels, outChannels)
         self.pooling = MaxPool2d(kernel_size=2, stride=2)
-    
-    def forward(self, x):
+
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         down = self.convolution(x)
         pooling = self.pooling(down)
         return down, pooling
 
+
 class SimpleUpSample(Module):
     # Simple upsampling block without attention gates.
-    def __init__(self, inChannels, outChannels):
+    def __init__(
+        self,
+        inChannels: int,
+        outChannels: int,
+    ) -> None:
         super().__init__()
         self.upsampling = Sequential(
-            Upsample(scale_factor=2, mode='bilinear', align_corners=False),
+            Upsample(scale_factor=2, mode="bilinear", align_corners=False),
             Conv2d(inChannels, inChannels // 2, kernel_size=3, padding=1),
             BatchNorm2d(inChannels // 2),
-            ReLU(inplace=True)
+            ReLU(inplace=True),
         )
         self.convolution = SimpleConvBlock(inChannels, outChannels)
-       
-    def forward(self, x1, x2):
+
+    def forward(self, x1: torch.Tensor, x2: torch.Tensor) -> torch.Tensor:
         x1 = self.upsampling(x1)
-        x = cat([x1, x2], dim=1)
+        x = torch.cat([x1, x2], dim=1)
         return self.convolution(x)
+
 
 class SimpleUNet(Module):
     # Simple U-Net architecture without any attention mechanisms.
     # Network output is of the form (B, C, H, W).
-    def __init__(self, inChannels, numClasses):
+    def __init__(
+        self,
+        inChannels: int,
+        numClasses: int,
+    ) -> None:
         super().__init__()
         self.numClasses = numClasses
 
@@ -66,8 +86,8 @@ class SimpleUNet(Module):
         self.upConvolutionFour = SimpleUpSample(128, 64)
 
         self.output = Conv2d(64, numClasses, kernel_size=1)
-        
-    def forward(self, x):
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         downOne, poolingOne = self.downConvolutionOne(x)
         downTwo, poolingTwo = self.downConvolutionTwo(poolingOne)
         downThree, poolingThree = self.downConvolutionThree(poolingTwo)
