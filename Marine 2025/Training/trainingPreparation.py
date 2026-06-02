@@ -1,3 +1,6 @@
+from pathlib import Path
+from xml.parsers.expat import model
+
 from torch import no_grad, optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -5,7 +8,9 @@ from tqdm import tqdm
 from Training.computeMetrics import computeMetrics
 from Training.LossFunction import LossFunction
 from Training.trainingFinalization import saveTrialData
-from Training.trainingVisualization import logResults, plotMetrics
+from Training.trainingVisualization import (
+    TrainingVisualization,
+)
 from u_net_models.UNet import UNet
 from Various.configurationFile import LOG_INTERVAL, PATIENCE, WARMUP
 
@@ -13,6 +18,7 @@ from Various.configurationFile import LOG_INTERVAL, PATIENCE, WARMUP
 SCALAR_KEYS = ["Loss", "Dice Coefficient", "IoU", "Accuracy", "Precision", "Recall"]
 # Keys that hold per-class lists.
 PER_CLASS_KEYS = [
+    "Per Class Dice",
     "Per Class IoU",
     "Per Class Accuracy",
     "Per Class Precision",
@@ -67,7 +73,7 @@ def trainOneEpoch(
     optimizer: optim.Optimizer,
     criterion: LossFunction,
     device: str,
-):
+) -> dict[str, float]:
     model.train()
     aggregated = _emptyAggregated()
 
@@ -96,7 +102,7 @@ def validateOneEpoch(
     validationDataloader: DataLoader,
     criterion: LossFunction,
     device: str,
-):
+) -> dict[str, float]:
     model.eval()
     aggregated = _emptyAggregated()
 
@@ -125,8 +131,9 @@ def trainingLoop(
     mainScheduler: optim.lr_scheduler.LambdaLR,
     criterion: LossFunction,
     device: str,
+    plotPath: Path,
     trialNumber: int = 0,
-):
+) -> tuple[dict[str, float], dict[str, float], int]:
     trainingLossPlot = []
     validationLossPlot = []
     validationDiceScorePlot = []
@@ -134,10 +141,10 @@ def trainingLoop(
     # Early stopping mechanism.
     bestValidationLoss = float("inf")
     patienceCounter = 0
-    maxEpochs = 0
-
+    epochs = 0
+    trainVizualizationObject = TrainingVisualization(plotPath=plotPath)
+    maxEpochs = 300
     while True:
-        logged = False
         trainingMetrics = trainOneEpoch(
             model=model,
             trainingDataloader=trainingDataloader,
@@ -152,8 +159,8 @@ def trainingLoop(
             device=device,
         )
         currentLR = optimizer.param_groups[0]["lr"]
-        maxEpochs += 1
-        if maxEpochs < WARMUP:
+        epochs += 1
+        if epochs < WARMUP:
             warmupScheduler.step()
         else:
             mainScheduler.step(validationMetrics["Loss"])
@@ -165,16 +172,15 @@ def trainingLoop(
         validationIoUScorePlot.append(validationMetrics["IoU"])
 
         # Log and save every LOG_INTERVAL epochs, and always on the first epoch.
-        if maxEpochs == 1 or maxEpochs % LOG_INTERVAL == 0:
-            logResults(maxEpochs, currentLR, trainingMetrics, validationMetrics)
+        if epochs == 1 or epochs % LOG_INTERVAL == 0:
+            trainVizualizationObject.logResults(epochs, currentLR, trainingMetrics, validationMetrics)
             saveTrialData(
-                epoch=maxEpochs,
+                epoch=epochs,
                 currentLR=currentLR,
                 trainingMetrics=trainingMetrics,
                 validationMetrics=validationMetrics,
                 trialNumber=trialNumber,
             )
-            logged = True
 
         # Models train indefinitely, until validation loss stops improving.
         if validationMetrics["Loss"] < bestValidationLoss:
@@ -182,13 +188,13 @@ def trainingLoop(
             patienceCounter = 0
         else:
             patienceCounter += 1
-        if patienceCounter >= PATIENCE or maxEpochs >= 10:  # Safety cap to prevent infinite loops in case of bugs.
-            print(f"Early stopping triggered after {maxEpochs} epochs.")
+        if patienceCounter >= PATIENCE or epochs >= maxEpochs:  # Safety cap to prevent infinite loops in case of bugs.
+            print(f"Early stopping triggered after {epochs} epochs.")
             # Always log the final epoch.
-            if maxEpochs % LOG_INTERVAL != 0:
-                logResults(maxEpochs, currentLR, trainingMetrics, validationMetrics)
+            if epochs % LOG_INTERVAL != 0:
+                trainVizualizationObject.logResults(epochs, currentLR, trainingMetrics, validationMetrics)
                 saveTrialData(
-                    maxEpochs,
+                    epochs,
                     currentLR,
                     trainingMetrics,
                     validationMetrics,
@@ -196,11 +202,11 @@ def trainingLoop(
                 )
             break
     # Plot training metrics after training ends.
-    PNGPath = plotMetrics(
+    trainVizualizationObject.plotMetrics(
         trainingLossPlot,
         validationLossPlot,
         validationDiceScorePlot,
         validationIoUScorePlot,
         trialNumber,
     )
-    return trainingMetrics, validationMetrics, PNGPath, maxEpochs
+    return trainingMetrics, validationMetrics, epochs

@@ -12,6 +12,7 @@ from Dataset.MyDataset import MyDataset
 from Training.LossFunction import LossFunction
 from u_net_models.initializeWeights import initializeWeights
 from u_net_models.UNet import UNet
+from u_net_models.SimpleUNet import SimpleUNet
 from Various.configurationFile import BATCH_SIZE, TRAINING_PATH, VALIDATION_PATH, WARMUP
 
 
@@ -73,6 +74,15 @@ def initializeModel(
     model.apply(initializeWeights)
     return model
 
+def initializeSimpleUnetModel(
+    inChannels: int,
+    numClasses: int,
+    device: str,
+) -> SimpleUNet:
+    # Model shall be sent to GPU to expedite execution.
+    model = SimpleUNet(inChannels=inChannels, numClasses=numClasses).to(device)
+    model.apply(initializeWeights)
+    return model
 
 def setupDevice():
     if is_available():
