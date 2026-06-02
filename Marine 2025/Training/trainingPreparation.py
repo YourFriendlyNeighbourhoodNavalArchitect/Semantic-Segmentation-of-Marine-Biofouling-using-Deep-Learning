@@ -132,6 +132,7 @@ def trainingLoop(
     criterion: LossFunction,
     device: str,
     plotPath: Path,
+    savePath: Path,
     trialNumber: int = 0,
 ) -> tuple[dict[str, float], dict[str, float], int]:
     trainingLossPlot = []
@@ -180,6 +181,7 @@ def trainingLoop(
                 trainingMetrics=trainingMetrics,
                 validationMetrics=validationMetrics,
                 trialNumber=trialNumber,
+                savePath=savePath,
             )
 
         # Models train indefinitely, until validation loss stops improving.
@@ -194,11 +196,12 @@ def trainingLoop(
             if epochs % LOG_INTERVAL != 0:
                 trainVizualizationObject.logResults(epochs, currentLR, trainingMetrics, validationMetrics)
                 saveTrialData(
-                    epochs,
-                    currentLR,
-                    trainingMetrics,
-                    validationMetrics,
-                    trialNumber,
+                    epoch=epochs,
+                    currentLR=currentLR,
+                    trainingMetrics=trainingMetrics,
+                    validationMetrics=validationMetrics,
+                    trialNumber=trialNumber,
+                    savePath=savePath,
                 )
             break
     # Plot training metrics after training ends.
