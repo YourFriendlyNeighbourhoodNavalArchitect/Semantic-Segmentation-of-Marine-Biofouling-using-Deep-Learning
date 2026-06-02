@@ -58,6 +58,7 @@ def trainSimpleUNet():
         criterion,
         device,
         plotPath=plotPath,
+        savePath=savePath,
         trialNumber=trialNumber,
     )
 

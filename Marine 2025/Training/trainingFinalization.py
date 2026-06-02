@@ -4,7 +4,6 @@ from pathlib import Path
 import torch
 
 from u_net_models.UNet import UNet
-from Various.configurationFile import MODEL_PATH
 
 
 def _roundMetrics(metrics: dict[dict]) -> dict[bool | list[float] | float]:
@@ -26,9 +25,10 @@ def saveTrialData(
     trainingMetrics: dict,
     validationMetrics: dict,
     trialNumber: int,
+    savePath: Path,
 ):
     # Store all trial data in a JSON file to facilitate subsequent manipulations.
-    logPath = MODEL_PATH / "trialLog.json"
+    logPath = savePath / "trialLog.json"
     if logPath.exists():
         with Path.open(logPath, "r") as file:
             studyData = load(file)
