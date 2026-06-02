@@ -38,7 +38,7 @@ def trainAttentionUNet():
         parameters=model.parameters(),
         learningRate=LEARNING_RATE,
     )
-    trainingDataloader, validationDataloader = getDataloaders()
+    trainingDataloader, validationDataloader = getDataloaders(testFlag=True)
 
     trialNumber = 0
     trainingMetrics, validationMetrics, _, maxEpochs = trainingLoop(

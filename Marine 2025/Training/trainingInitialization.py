@@ -17,13 +17,14 @@ from Various.configurationFile import BATCH_SIZE, TRAINING_PATH, VALIDATION_PATH
 
 def getDataloaders(
     pin_memory: bool = False,
+    testFlag: bool = False,
 ) -> tuple[
     DataLoader,
     DataLoader,
 ]:
     # Only the training subset is to be augmented.
-    trainingDataset = MyDataset(TRAINING_PATH, augmentationFlag=True)
-    validationDataset = MyDataset(VALIDATION_PATH, augmentationFlag=False)
+    trainingDataset = MyDataset(TRAINING_PATH, augmentationFlag=True, testFlag=testFlag)
+    validationDataset = MyDataset(VALIDATION_PATH, augmentationFlag=False, testFlag=testFlag)
     trainingDataloader = DataLoader(
         dataset=trainingDataset,
         batch_size=BATCH_SIZE,

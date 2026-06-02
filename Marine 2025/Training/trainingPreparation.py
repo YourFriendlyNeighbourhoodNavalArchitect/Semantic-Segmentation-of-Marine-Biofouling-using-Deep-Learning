@@ -182,7 +182,7 @@ def trainingLoop(
             patienceCounter = 0
         else:
             patienceCounter += 1
-        if patienceCounter >= PATIENCE and not logged:
+        if patienceCounter >= PATIENCE or maxEpochs >= 10:  # Safety cap to prevent infinite loops in case of bugs.
             print(f"Early stopping triggered after {maxEpochs} epochs.")
             # Always log the final epoch.
             if maxEpochs % LOG_INTERVAL != 0:

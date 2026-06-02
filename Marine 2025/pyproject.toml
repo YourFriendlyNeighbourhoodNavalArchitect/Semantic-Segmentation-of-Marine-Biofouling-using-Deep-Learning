@@ -32,7 +32,8 @@ dependencies = [
     "torchsummary",
     "torchviz",
     "albumentations",
-    "iterative-stratification"
+    "iterative-stratification",
+    "onnxscript",
 ]
 
 
