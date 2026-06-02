@@ -4,7 +4,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 
-from Various.configurationFile import CLASS_DICTIONARY_new, MODEL_PATH
+from Various.configurationFile import MODEL_PATH, CLASS_DICTIONARY_new
 
 # Ordered class names for per-class reporting.
 CLASS_NAMES = list(CLASS_DICTIONARY_new.keys())
@@ -13,11 +13,9 @@ CLASS_NAMES = list(CLASS_DICTIONARY_new.keys())
 class TrainingVisualization:
     def __init__(
         self,
-        metadataPath: Path,
-        outputDirectory: Path,
+        plotPath: Path,
     ) -> None:
-        self.metadataPath = metadataPath
-        self.outputDirectory = outputDirectory
+        self.plots_path: Path = plotPath
 
     def logResults(
         self,
@@ -50,7 +48,7 @@ class TrainingVisualization:
     def ticksFormat(
         self,
         x: float,
-        pos: int,  # noqa: ARG001
+        pos: int,  # noqa: ARG002
     ) -> str:
         # Dummy function to format y-axis ticks.
         max_x = 1000  # Threshold for switching to scientific notation, can be adjusted based on expected metric ranges.
@@ -67,14 +65,12 @@ class TrainingVisualization:
         figure: plt.Figure,
         trialNumber: int,
     ) -> Path:
-        path = MODEL_PATH / f"trainingPlot{trialNumber}.png"
+        path = self.plots_path / f"trainingPlot{trialNumber}.png"
         figure.savefig(path, dpi=600, bbox_inches="tight")
         print(f"Training plot saved in {path}.")
-        return path
 
     def plotMetrics(
         self,
-        plots_path: Path,
         trainingLossPlot: list[float],
         validationLossPlot: list[float],
         diceScorePlot: list[float],
@@ -129,5 +125,4 @@ class TrainingVisualization:
             axis.set_xticklabels(tickLabels, fontsize=12)
             axis.yaxis.set_tick_params(labelsize=12)
 
-        PNGPath = self.saveTrainingPlot(figure, trialNumber)
-        return PNGPath
+        self.saveTrainingPlot(figure, trialNumber)

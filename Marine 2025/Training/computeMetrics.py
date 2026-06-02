@@ -54,7 +54,7 @@ def computeMetrics(
         weight_type="linear",
         input_format="index",
         per_class=True,
-    ).squeeze(0)
+    ).mean(dim=0)
     perClassIoU = mean_iou(
         prediction,
         groundTruth,

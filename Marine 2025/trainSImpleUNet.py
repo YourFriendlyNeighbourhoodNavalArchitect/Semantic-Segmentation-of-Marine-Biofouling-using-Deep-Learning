@@ -10,17 +10,17 @@ from Training.trainingInitialization import (
     getDataloaders,
     getOptimizer,
     initializeLossFunction,
+    initializeSimpleUnetModel,
     setSeed,
     setupDevice,
 )
 from Training.trainingPreparation import trainingLoop
-from u_net_models.initializeWeights import initializeWeights
-from u_net_models.SimpleUNet import SimpleUNet
 from Various.configurationFile import (
     LEARNING_RATE,
     MODEL_PATH,
     RESOLUTION,
     SEED,
+    VISUALIZATIONS_PATH,
     NUM_CLASSES_new,
 )
 
@@ -30,24 +30,25 @@ def trainSimpleUNet():
     setSeed(SEED)
     device = setupDevice()
 
-    # Output directory for the Simple U-Net (separate from the Attention U-Net).
     savePath = MODEL_PATH / "SimpleUNet"
+    plotPath = VISUALIZATIONS_PATH / "SimpleUNet"
     savePath.mkdir(exist_ok=True, parents=True)
+    plotPath.mkdir(exist_ok=True, parents=True)
 
     # Model initialisation with Kaiming weights (same as Attention U-Net).
-    model = SimpleUNet(inChannels=3, numClasses=NUM_CLASSES_new).to(device)
-    model.apply(initializeWeights)
 
+    model = initializeSimpleUnetModel(inChannels=3, numClasses=NUM_CLASSES_new, device=device)
     # Same training setup as the best Attention U-Net trial.
     criterion = initializeLossFunction()
     optimizer, warmupScheduler, mainScheduler = getOptimizer(
-        model.parameters(), LEARNING_RATE
+        parameters=model.parameters(),
+        learningRate=LEARNING_RATE,
     )
-    trainingDataloader, validationDataloader = getDataloaders()
+    trainingDataloader, validationDataloader = getDataloaders(testFlag=True)
 
     # Train.
     trialNumber = 0
-    trainingMetrics, validationMetrics, _, maxEpochs = trainingLoop(
+    trainingMetrics, validationMetrics, maxEpochs = trainingLoop(
         model,
         trainingDataloader,
         validationDataloader,
@@ -56,6 +57,7 @@ def trainSimpleUNet():
         mainScheduler,
         criterion,
         device,
+        plotPath=plotPath,
         trialNumber=trialNumber,
     )
 
@@ -63,7 +65,7 @@ def trainSimpleUNet():
     inputShape = (1, 3, *RESOLUTION)
     saveONNX(model, device, inputShape, savePath, trialNumber)
     saveCheckpoint(
-        model, optimizer, maxEpochs, validationMetrics, savePath, trialNumber
+        model, optimizer, maxEpochs, validationMetrics, savePath, trialNumber,
     )
     saveResults(
         maxEpochs,
@@ -73,9 +75,9 @@ def trainSimpleUNet():
         savePath,
         trialNumber,
     )
-    cleanupAndRename(trialNumber, savePath)
+    # cleanupAndRename(trialNumber, savePath)
 
-    print(f"\nTraining complete after {maxEpochs} epochs.")
+    print(f"\nSimple U-Net training complete after {maxEpochs} epochs.")
     print(f"Validation Dice: {validationMetrics['Dice Coefficient']:.4f}")
     print(f"Validation IoU:  {validationMetrics['IoU']:.4f}")
 

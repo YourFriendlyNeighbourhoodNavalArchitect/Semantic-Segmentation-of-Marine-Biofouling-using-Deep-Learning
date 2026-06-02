@@ -1,3 +1,5 @@
+"""Train an Attention U-Net."""
+
 from Training.trainingFinalization import (
     cleanupAndRename,
     saveCheckpoint,
@@ -18,16 +20,20 @@ from Various.configurationFile import (
     MODEL_PATH,
     RESOLUTION,
     SEED,
+    VISUALIZATIONS_PATH,
     NUM_CLASSES_new,
 )
 
 
 def trainAttentionUNet():
+    # Reproducibility.
     setSeed(SEED)
     device = setupDevice()
 
     savePath = MODEL_PATH / "AttentionUNet"
+    plotPath = VISUALIZATIONS_PATH / "AttentionUNet"
     savePath.mkdir(exist_ok=True, parents=True)
+    plotPath.mkdir(exist_ok=True, parents=True)
 
     # Attention U-Net: same 64→128→256→512→1024 structure,
     # with spatial attention gates + squeeze-and-excitation blocks.
@@ -40,8 +46,9 @@ def trainAttentionUNet():
     )
     trainingDataloader, validationDataloader = getDataloaders(testFlag=True)
 
+    # Train.
     trialNumber = 0
-    trainingMetrics, validationMetrics, _, maxEpochs = trainingLoop(
+    trainingMetrics, validationMetrics, maxEpochs = trainingLoop(
         model,
         trainingDataloader,
         validationDataloader,
@@ -50,9 +57,11 @@ def trainAttentionUNet():
         mainScheduler,
         criterion,
         device,
+        plotPath=plotPath,
         trialNumber=trialNumber,
     )
 
+    # Save all artifacts.
     inputShape = (1, 3, *RESOLUTION)
     saveONNX(model, device, inputShape, savePath, trialNumber)
     saveCheckpoint(
@@ -66,7 +75,7 @@ def trainAttentionUNet():
         savePath,
         trialNumber,
     )
-    cleanupAndRename(trialNumber, savePath)
+    # cleanupAndRename(trialNumber, savePath)
 
     print(f"\nAttention U-Net training complete after {maxEpochs} epochs.")
     print(f"Validation Dice: {validationMetrics['Dice Coefficient']:.4f}")
