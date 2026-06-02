@@ -11,21 +11,23 @@ from Various.configurationFile import RESOLUTION
 
 
 class MyDataset(Dataset):
-    def __init__(self, rootPath: Path, augmentationFlag: bool) -> None:
+    def __init__(self, rootPath: Path, augmentationFlag: bool, testFlag: bool = False) -> None:
         self.rootPath = rootPath
         self.imageFolder = self.rootPath / "Images"
         self.maskFolder = self.rootPath / "Masks"
         self.augmentationFlag = augmentationFlag
+        self.testFlag = testFlag
 
         # Implement lazy loading of files to reduce computational overhead.
         self.imagePaths = sorted(list(self.imageFolder.glob("*.jpg")))  # noqa: C414
         self.maskPaths = sorted(list(self.maskFolder.glob("*.npy")))  # noqa: C414
-        self.dataset = [
-            (imagePath, maskPath)
-            for imagePath, maskPath in zip(self.imagePaths, self.maskPaths, strict=False)
-            if imagePath.name.replace(".jpg", ".npy") == maskPath.name
-        ]
 
+        self.dataset = [
+                (imagePath, maskPath)
+                for imagePath, maskPath in zip(self.imagePaths, self.maskPaths, strict=False)
+                if imagePath.name.replace(".jpg", ".npy") == maskPath.name
+            ]
+ 
         # Define transformation pipeline.
         if self.augmentationFlag:
             self.transformCompose = A.Compose(
@@ -55,7 +57,8 @@ class MyDataset(Dataset):
                 [A.Resize(RESOLUTION[0], RESOLUTION[1])],
                 additional_targets={"mask": "mask"},
             )
-
+        if self.testFlag:
+          self.dataset = self.dataset[:50]
         self.toTensor = Compose([ToImage(), ToDtype(float32, scale=True)])
 
     def __len__(self):  # noqa: ANN204, D105
