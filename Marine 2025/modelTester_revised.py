@@ -3,17 +3,18 @@ from pathlib import Path
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 from matplotlib.lines import Line2D
 from onnxruntime import InferenceSession
 from torch import from_numpy
 from torchmetrics.functional.classification import multiclass_confusion_matrix
-import torch
 
 from Dataset.MyDataset import MyDataset
 from Training.computeMetrics import computeMetrics
 from Training.trainingInitialization import setupDevice
 from Various.configurationFile import (
     MODEL_PATH,
+    PROJECT_ROOT,
     TESTING_PATH,
     CLASS_DICTIONARY_new,
     NUM_CLASSES_new,
@@ -424,7 +425,7 @@ class ModelTester:
         return f"{row1}\n{row2}"
 if __name__ == "__main__":
     model_path = Path(
-        r"D:\Orfeas\PhD\Research\Semantic-Segmentation-of-Marine-Biofouling-using-Deep-Learning\Marine 2025\Trained models\SimpleUNet\modelTrial0.onnx"
+        PROJECT_ROOT / "Trained models" / "SimpleUNet" / "modelTrial0.onnx"
     )
     device = setupDevice()
     output_directory = MODEL_PATH / "Predictions" / "SimpleUNet_revised"
@@ -435,7 +436,7 @@ if __name__ == "__main__":
         device=device,
     )
     model_path = Path(
-        r"D:\Orfeas\PhD\Research\Semantic-Segmentation-of-Marine-Biofouling-using-Deep-Learning\Marine 2025\Trained models\AttentionUNet\modelTrial0.onnx"
+        PROJECT_ROOT / "Trained models" / "AttentionUNet" / "modelTrial0.onnx"
     )
     device = setupDevice()
     output_directory = MODEL_PATH / "Predictions" / "AttentionUNet_revised"
