@@ -216,8 +216,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-.png
+*.png
 *.jpg
 *.npy
 *.json
 *.ndjson
+*.zip
+*.pdf
+Marine 2025/OUTPUTS/*
+Marine 2025/Trained models/*
+Marine 2025/Visualizations/*
