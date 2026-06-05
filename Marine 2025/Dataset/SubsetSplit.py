@@ -13,7 +13,8 @@ from Various.configurationFile import (
     # TESTING_PATH,
     # TRAINING_PATH,
     # VALIDATION_PATH,
-    NUM_CLASSES_old,
+    # NUM_CLASSES_old,
+    NUM_CLASSES_new,
 )
 
 
@@ -42,7 +43,7 @@ class SubsetSplit:
 
     def countClassIndices(self, IDs: np.ndarray | None = None):
         # Calculate class distribution.
-        classIndexCount = dict.fromkeys(range(NUM_CLASSES_old), 0)
+        classIndexCount = dict.fromkeys(range(NUM_CLASSES_new), 0)
         relevantMetadata = (
             self.metadata
             if IDs is None
@@ -61,7 +62,7 @@ class SubsetSplit:
         IDs = np.array([int(ID) for ID in self.metadata.keys()])  # noqa: SIM118
         labels = np.array(
             [
-                [self.countClassIndices([ID])[i] for i in range(NUM_CLASSES_old)]
+                [self.countClassIndices([ID])[i] for i in range(NUM_CLASSES_new)]
                 for ID in IDs
             ],
         )
