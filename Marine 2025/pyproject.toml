@@ -34,6 +34,7 @@ dependencies = [
     "albumentations",
     "iterative-stratification",
     "onnxscript",
+    "onnxruntime",
 ]
 
 
@@ -95,4 +96,5 @@ ignore = [
     "F722",   # Syntax error in type annotations (e.g., using Python 3.10+ syntax in a codebase targeting Python 3.9).
     "N999",
     "N812",
+    "COM812",
 ]
