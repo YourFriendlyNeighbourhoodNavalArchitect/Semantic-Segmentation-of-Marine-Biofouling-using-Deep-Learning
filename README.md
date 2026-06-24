@@ -43,4 +43,4 @@ This project has evolved over time. Please navigate to the relevant folder based
 * **Citation:** If you use this work, please cite the relevant stage.
 * **License:** This project is licensed under the **MIT License**. See the LICENSE file for details.
 * **Contact:**
-    * Ioannis Karlatiras: `giannhskarlathras@gmail.com`
+    * Ioannis Karlatiras: `ioannis.karlatiras@gmail.com`
